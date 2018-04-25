@@ -24,6 +24,7 @@
 #include <time.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 /* Global command queue. */
 static struct cmdq_list global_queue = TAILQ_HEAD_INITIALIZER(global_queue);
@@ -287,23 +288,23 @@ cmdq_fire_callback(struct cmdq_item *item)
 }
 
 /* Add a format to command queue. */
-void
-cmdq_format(struct cmdq_item *item, const char *key, const char *fmt, ...)
-{
-	struct cmdq_shared	*shared = item->shared;
-	va_list			 ap;
-	char			*value;
+// void
+// cmdq_format(struct cmdq_item *item, const char *key, const char *fmt, ...)
+// {
+// 	struct cmdq_shared	*shared = item->shared;
+// 	va_list			 ap;
+// 	char			*value;
 
-	va_start(ap, fmt);
-	xvasprintf(&value, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	xvasprintf(&value, fmt, ap);
+// 	va_end(ap);
 
-	if (shared->formats == NULL)
-		shared->formats = format_create(NULL, NULL, FORMAT_NONE, 0);
-	format_add(shared->formats, key, "%s", value);
+// 	if (shared->formats == NULL)
+// 		shared->formats = format_create(NULL, NULL, FORMAT_NONE, 0);
+// 	format_add(shared->formats, key, "%s", value);
 
-	free(value);
-}
+// 	free(value);
+// }
 
 /* Process next item on command queue. */
 u_int
@@ -401,77 +402,77 @@ cmdq_guard(struct cmdq_item *item, const char *guard, int flags)
 }
 
 /* Show message from command. */
-void
-cmdq_print(struct cmdq_item *item, const char *fmt, ...)
-{
-	struct client	*c = item->client;
-	struct window	*w;
-	va_list		 ap;
-	char		*tmp, *msg;
+// void
+// cmdq_print(struct cmdq_item *item, const char *fmt, ...)
+// {
+// 	struct client	*c = item->client;
+// 	struct window	*w;
+// 	va_list		 ap;
+// 	char		*tmp, *msg;
 
-	va_start(ap, fmt);
+// 	va_start(ap, fmt);
 
-	if (c == NULL)
-		/* nothing */;
-	else if (c->session == NULL || (c->flags & CLIENT_CONTROL)) {
-		if (~c->flags & CLIENT_UTF8) {
-			xvasprintf(&tmp, fmt, ap);
-			msg = utf8_sanitize(tmp);
-			free(tmp);
-			evbuffer_add(c->stdout_data, msg, strlen(msg));
-			free(msg);
-		} else
-			evbuffer_add_vprintf(c->stdout_data, fmt, ap);
-		evbuffer_add(c->stdout_data, "\n", 1);
-		server_client_push_stdout(c);
-	} else {
-		w = c->session->curw->window;
-		if (w->active->mode != &window_copy_mode) {
-			window_pane_reset_mode(w->active);
-			window_pane_set_mode(w->active, &window_copy_mode, NULL,
-			    NULL);
-			window_copy_init_for_output(w->active);
-		}
-		window_copy_vadd(w->active, fmt, ap);
-	}
+// 	if (c == NULL)
+// 		/* nothing */;
+// 	else if (c->session == NULL || (c->flags & CLIENT_CONTROL)) {
+// 		if (~c->flags & CLIENT_UTF8) {
+// 			xvasprintf(&tmp, fmt, ap);
+// 			msg = utf8_sanitize(tmp);
+// 			free(tmp);
+// 			evbuffer_add(c->stdout_data, msg, strlen(msg));
+// 			free(msg);
+// 		} else
+// 			evbuffer_add_vprintf(c->stdout_data, fmt, ap);
+// 		evbuffer_add(c->stdout_data, "\n", 1);
+// 		server_client_push_stdout(c);
+// 	} else {
+// 		w = c->session->curw->window;
+// 		if (w->active->mode != &window_copy_mode) {
+// 			window_pane_reset_mode(w->active);
+// 			window_pane_set_mode(w->active, &window_copy_mode, NULL,
+// 			    NULL);
+// 			window_copy_init_for_output(w->active);
+// 		}
+// 		window_copy_vadd(w->active, fmt, ap);
+// 	}
 
-	va_end(ap);
-}
+// 	va_end(ap);
+// }
 
 /* Show error from command. */
-void
-cmdq_error(struct cmdq_item *item, const char *fmt, ...)
-{
-	struct client	*c = item->client;
-	struct cmd	*cmd = item->cmd;
-	va_list		 ap;
-	char		*msg;
-	size_t		 msglen;
-	char		*tmp;
+// void
+// cmdq_error(struct cmdq_item *item, const char *fmt, ...)
+// {
+// 	struct client	*c = item->client;
+// 	struct cmd	*cmd = item->cmd;
+// 	va_list		 ap;
+// 	char		*msg;
+// 	size_t		 msglen;
+// 	char		*tmp;
 
-	va_start(ap, fmt);
-	msglen = xvasprintf(&msg, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	msglen = xvasprintf(&msg, fmt, ap);
+// 	va_end(ap);
 
-	log_debug("%s: %s", __func__, msg);
+// 	log_debug("%s: %s", __func__, msg);
 
-	if (c == NULL)
-		cfg_add_cause("%s:%u: %s", cmd->file, cmd->line, msg);
-	else if (c->session == NULL || (c->flags & CLIENT_CONTROL)) {
-		if (~c->flags & CLIENT_UTF8) {
-			tmp = msg;
-			msg = utf8_sanitize(tmp);
-			free(tmp);
-			msglen = strlen(msg);
-		}
-		evbuffer_add(c->stderr_data, msg, msglen);
-		evbuffer_add(c->stderr_data, "\n", 1);
-		server_client_push_stderr(c);
-		c->retval = 1;
-	} else {
-		*msg = toupper((u_char) *msg);
-		status_message_set(c, "%s", msg);
-	}
+// 	if (c == NULL)
+// 		cfg_add_cause("%s:%u: %s", cmd->file, cmd->line, msg);
+// 	else if (c->session == NULL || (c->flags & CLIENT_CONTROL)) {
+// 		if (~c->flags & CLIENT_UTF8) {
+// 			tmp = msg;
+// 			msg = utf8_sanitize(tmp);
+// 			free(tmp);
+// 			msglen = strlen(msg);
+// 		}
+// 		evbuffer_add(c->stderr_data, msg, msglen);
+// 		evbuffer_add(c->stderr_data, "\n", 1);
+// 		server_client_push_stderr(c);
+// 		c->retval = 1;
+// 	} else {
+// 		*msg = toupper((u_char) *msg);
+// 		status_message_set(c, "%s", msg);
+// 	}
 
-	free(msg);
-}
+// 	free(msg);
+// }

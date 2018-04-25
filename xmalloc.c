@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 void *
 xmalloc(size_t size)
@@ -91,18 +92,18 @@ xstrndup(const char *str, size_t maxlen)
 	return cp;
 }
 
-int
-xasprintf(char **ret, const char *fmt, ...)
-{
-	va_list ap;
-	int i;
+// int
+// xasprintf(char **ret, const char *fmt, ...)
+// {
+// 	va_list ap;
+// 	int i;
 
-	va_start(ap, fmt);
-	i = xvasprintf(ret, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	i = xvasprintf(ret, fmt, ap);
+// 	va_end(ap);
 
-	return i;
-}
+// 	return i;
+// }
 
 int
 xvasprintf(char **ret, const char *fmt, va_list ap)
@@ -117,18 +118,18 @@ xvasprintf(char **ret, const char *fmt, va_list ap)
 	return i;
 }
 
-int
-xsnprintf(char *str, size_t len, const char *fmt, ...)
-{
-	va_list ap;
-	int i;
+// int
+// xsnprintf(char *str, size_t len, const char *fmt, ...)
+// {
+// 	va_list ap;
+// 	int i;
 
-	va_start(ap, fmt);
-	i = xvsnprintf(str, len, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	i = xvsnprintf(str, len, fmt, ap);
+// 	va_end(ap);
 
-	return i;
-}
+// 	return i;
+// }
 
 int
 xvsnprintf(char *str, size_t len, const char *fmt, va_list ap)

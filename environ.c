@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 /*
  * Environment - manipulate a set of environment variables.
@@ -102,24 +103,24 @@ environ_find(struct environ *env, const char *name)
 }
 
 /* Set an environment variable. */
-void
-environ_set(struct environ *env, const char *name, const char *fmt, ...)
-{
-	struct environ_entry	*envent;
-	va_list			 ap;
+// void
+// environ_set(struct environ *env, const char *name, const char *fmt, ...)
+// {
+// 	struct environ_entry	*envent;
+// 	va_list			 ap;
 
-	va_start(ap, fmt);
-	if ((envent = environ_find(env, name)) != NULL) {
-		free(envent->value);
-		xvasprintf(&envent->value, fmt, ap);
-	} else {
-		envent = xmalloc(sizeof *envent);
-		envent->name = xstrdup(name);
-		xvasprintf(&envent->value, fmt, ap);
-		RB_INSERT(environ, env, envent);
-	}
-	va_end(ap);
-}
+// 	va_start(ap, fmt);
+// 	if ((envent = environ_find(env, name)) != NULL) {
+// 		free(envent->value);
+// 		xvasprintf(&envent->value, fmt, ap);
+// 	} else {
+// 		envent = xmalloc(sizeof *envent);
+// 		envent->name = xstrdup(name);
+// 		xvasprintf(&envent->value, fmt, ap);
+// 		RB_INSERT(environ, env, envent);
+// 	}
+// 	va_end(ap);
+// }
 
 /* Clear an environment variable. */
 void
@@ -207,26 +208,26 @@ environ_push(struct environ *env)
 }
 
 /* Log the environment. */
-void
-environ_log(struct environ *env, const char *fmt, ...)
-{
-	struct environ_entry	*envent;
-	va_list			 ap;
-	char			*prefix;
+// void
+// environ_log(struct environ *env, const char *fmt, ...)
+// {
+// 	struct environ_entry	*envent;
+// 	va_list			 ap;
+// 	char			*prefix;
 
-	va_start(ap, fmt);
-	vasprintf(&prefix, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	vasprintf(&prefix, fmt, ap);
+// 	va_end(ap);
 
-	RB_FOREACH(envent, environ, env) {
-		if (envent->value != NULL && *envent->name != '\0') {
-			log_debug("%s%s=%s", prefix, envent->name,
-			    envent->value);
-		}
-	}
+// 	RB_FOREACH(envent, environ, env) {
+// 		if (envent->value != NULL && *envent->name != '\0') {
+// 			log_debug("%s%s=%s", prefix, envent->name,
+// 			    envent->value);
+// 		}
+// 	}
 
-	free(prefix);
-}
+// 	free(prefix);
+// }
 
 /* Create initial environment for new child. */
 struct environ *

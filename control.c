@@ -25,20 +25,21 @@
 #include <time.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 /* Write a line. */
-void
-control_write(struct client *c, const char *fmt, ...)
-{
-	va_list		 ap;
+// void
+// control_write(struct client *c, const char *fmt, ...)
+// {
+// 	va_list		 ap;
 
-	va_start(ap, fmt);
-	evbuffer_add_vprintf(c->stdout_data, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	evbuffer_add_vprintf(c->stdout_data, fmt, ap);
+// 	va_end(ap);
 
-	evbuffer_add(c->stdout_data, "\n", 1);
-	server_client_push_stdout(c);
-}
+// 	evbuffer_add(c->stdout_data, "\n", 1);
+// 	server_client_push_stdout(c);
+// }
 
 /* Write a buffer, adding a terminal newline. Empties buffer. */
 void

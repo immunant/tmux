@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 static const char *window_copy_key_table(struct window_pane *);
 static void	window_copy_command(struct window_pane *, struct client *,
@@ -291,15 +292,15 @@ window_copy_free(struct window_pane *wp)
 	free(data);
 }
 
-void
-window_copy_add(struct window_pane *wp, const char *fmt, ...)
-{
-	va_list	ap;
+// void
+// window_copy_add(struct window_pane *wp, const char *fmt, ...)
+// {
+// 	va_list	ap;
 
-	va_start(ap, fmt);
-	window_copy_vadd(wp, fmt, ap);
-	va_end(ap);
-}
+// 	va_start(ap, fmt);
+// 	window_copy_vadd(wp, fmt, ap);
+// 	va_end(ap);
+// }
 
 void
 window_copy_vadd(struct window_pane *wp, const char *fmt, va_list ap)

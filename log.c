@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 static FILE	*log_file;
 static int	 log_level;
@@ -125,42 +126,42 @@ log_vwrite(const char *msg, va_list ap)
 }
 
 /* Log a debug message. */
-void
-log_debug(const char *msg, ...)
-{
-	va_list	ap;
+// void
+// log_debug(const char *msg, ...)
+// {
+// 	va_list	ap;
 
-	va_start(ap, msg);
-	log_vwrite(msg, ap);
-	va_end(ap);
-}
+// 	va_start(ap, msg);
+// 	log_vwrite(msg, ap);
+// 	va_end(ap);
+// }
 
 /* Log a critical error with error string and die. */
-__dead void
-fatal(const char *msg, ...)
-{
-	char	*fmt;
-	va_list	 ap;
+// __dead void
+// fatal(const char *msg, ...)
+// {
+// 	char	*fmt;
+// 	va_list	 ap;
 
-	va_start(ap, msg);
-	if (asprintf(&fmt, "fatal: %s: %s", msg, strerror(errno)) == -1)
-		exit(1);
-	log_vwrite(fmt, ap);
-	va_end(ap);
-	exit(1);
-}
+// 	va_start(ap, msg);
+// 	if (asprintf(&fmt, "fatal: %s: %s", msg, strerror(errno)) == -1)
+// 		exit(1);
+// 	log_vwrite(fmt, ap);
+// 	va_end(ap);
+// 	exit(1);
+// }
 
 /* Log a critical error and die. */
-__dead void
-fatalx(const char *msg, ...)
-{
-	char	*fmt;
-	va_list	 ap;
+// __dead void
+// fatalx(const char *msg, ...)
+// {
+// 	char	*fmt;
+// 	va_list	 ap;
 
-	va_start(ap, msg);
-	if (asprintf(&fmt, "fatal: %s", msg) == -1)
-		exit(1);
-	log_vwrite(fmt, ap);
-	va_end(ap);
-	exit(1);
-}
+// 	va_start(ap, msg);
+// 	if (asprintf(&fmt, "fatal: %s", msg) == -1)
+// 		exit(1);
+// 	log_vwrite(fmt, ap);
+// 	va_end(ap);
+// 	exit(1);
+// }

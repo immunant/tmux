@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 static void	screen_write_initctx(struct screen_write_ctx *,
 		    struct tty_ctx *);
@@ -128,103 +129,103 @@ screen_write_putc(struct screen_write_ctx *ctx, const struct grid_cell *gcp,
 }
 
 /* Calculate string length, with embedded formatting. */
-size_t
-screen_write_cstrlen(const char *fmt, ...)
-{
-	va_list	ap;
-	char   *msg, *msg2, *ptr, *ptr2;
-	size_t	size;
+// size_t
+// screen_write_cstrlen(const char *fmt, ...)
+// {
+// 	va_list	ap;
+// 	char   *msg, *msg2, *ptr, *ptr2;
+// 	size_t	size;
 
-	va_start(ap, fmt);
-	xvasprintf(&msg, fmt, ap);
-	va_end(ap);
-	msg2 = xmalloc(strlen(msg) + 1);
+// 	va_start(ap, fmt);
+// 	xvasprintf(&msg, fmt, ap);
+// 	va_end(ap);
+// 	msg2 = xmalloc(strlen(msg) + 1);
 
-	ptr = msg;
-	ptr2 = msg2;
-	while (*ptr != '\0') {
-		if (ptr[0] == '#' && ptr[1] == '[') {
-			while (*ptr != ']' && *ptr != '\0')
-				ptr++;
-			if (*ptr == ']')
-				ptr++;
-			continue;
-		}
-		*ptr2++ = *ptr++;
-	}
-	*ptr2 = '\0';
+// 	ptr = msg;
+// 	ptr2 = msg2;
+// 	while (*ptr != '\0') {
+// 		if (ptr[0] == '#' && ptr[1] == '[') {
+// 			while (*ptr != ']' && *ptr != '\0')
+// 				ptr++;
+// 			if (*ptr == ']')
+// 				ptr++;
+// 			continue;
+// 		}
+// 		*ptr2++ = *ptr++;
+// 	}
+// 	*ptr2 = '\0';
 
-	size = screen_write_strlen("%s", msg2);
+// 	size = screen_write_strlen("%s", msg2);
 
-	free(msg);
-	free(msg2);
+// 	free(msg);
+// 	free(msg2);
 
-	return (size);
-}
+// 	return (size);
+// }
 
 /* Calculate string length. */
-size_t
-screen_write_strlen(const char *fmt, ...)
-{
-	va_list			ap;
-	char   	       	       *msg;
-	struct utf8_data	ud;
-	u_char 	      	       *ptr;
-	size_t			left, size = 0;
-	enum utf8_state		more;
+// size_t
+// screen_write_strlen(const char *fmt, ...)
+// {
+// 	va_list			ap;
+// 	char   	       	       *msg;
+// 	struct utf8_data	ud;
+// 	u_char 	      	       *ptr;
+// 	size_t			left, size = 0;
+// 	enum utf8_state		more;
 
-	va_start(ap, fmt);
-	xvasprintf(&msg, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	xvasprintf(&msg, fmt, ap);
+// 	va_end(ap);
 
-	ptr = msg;
-	while (*ptr != '\0') {
-		if (*ptr > 0x7f && utf8_open(&ud, *ptr) == UTF8_MORE) {
-			ptr++;
+// 	ptr = msg;
+// 	while (*ptr != '\0') {
+// 		if (*ptr > 0x7f && utf8_open(&ud, *ptr) == UTF8_MORE) {
+// 			ptr++;
 
-			left = strlen(ptr);
-			if (left < (size_t)ud.size - 1)
-				break;
-			while ((more = utf8_append(&ud, *ptr)) == UTF8_MORE)
-				ptr++;
-			ptr++;
+// 			left = strlen(ptr);
+// 			if (left < (size_t)ud.size - 1)
+// 				break;
+// 			while ((more = utf8_append(&ud, *ptr)) == UTF8_MORE)
+// 				ptr++;
+// 			ptr++;
 
-			if (more == UTF8_DONE)
-				size += ud.width;
-		} else {
-			if (*ptr > 0x1f && *ptr < 0x7f)
-				size++;
-			ptr++;
-		}
-	}
+// 			if (more == UTF8_DONE)
+// 				size += ud.width;
+// 		} else {
+// 			if (*ptr > 0x1f && *ptr < 0x7f)
+// 				size++;
+// 			ptr++;
+// 		}
+// 	}
 
-	free(msg);
-	return (size);
-}
+// 	free(msg);
+// 	return (size);
+// }
 
 /* Write simple string (no UTF-8 or maximum length). */
-void
-screen_write_puts(struct screen_write_ctx *ctx, const struct grid_cell *gcp,
-    const char *fmt, ...)
-{
-	va_list	ap;
+// void
+// screen_write_puts(struct screen_write_ctx *ctx, const struct grid_cell *gcp,
+//     const char *fmt, ...)
+// {
+// 	va_list	ap;
 
-	va_start(ap, fmt);
-	screen_write_vnputs(ctx, -1, gcp, fmt, ap);
-	va_end(ap);
-}
+// 	va_start(ap, fmt);
+// 	screen_write_vnputs(ctx, -1, gcp, fmt, ap);
+// 	va_end(ap);
+// }
 
 /* Write string with length limit (-1 for unlimited). */
-void
-screen_write_nputs(struct screen_write_ctx *ctx, ssize_t maxlen,
-    const struct grid_cell *gcp, const char *fmt, ...)
-{
-	va_list	ap;
+// void
+// screen_write_nputs(struct screen_write_ctx *ctx, ssize_t maxlen,
+//     const struct grid_cell *gcp, const char *fmt, ...)
+// {
+// 	va_list	ap;
 
-	va_start(ap, fmt);
-	screen_write_vnputs(ctx, maxlen, gcp, fmt, ap);
-	va_end(ap);
-}
+// 	va_start(ap, fmt);
+// 	screen_write_vnputs(ctx, maxlen, gcp, fmt, ap);
+// 	va_end(ap);
+// }
 
 void
 screen_write_vnputs(struct screen_write_ctx *ctx, ssize_t maxlen,
@@ -281,75 +282,75 @@ screen_write_vnputs(struct screen_write_ctx *ctx, ssize_t maxlen,
 }
 
 /* Write string, similar to nputs, but with embedded formatting (#[]). */
-void
-screen_write_cnputs(struct screen_write_ctx *ctx, ssize_t maxlen,
-    const struct grid_cell *gcp, const char *fmt, ...)
-{
-	struct grid_cell	 gc;
-	struct utf8_data	*ud = &gc.data;
-	va_list			 ap;
-	char			*msg;
-	u_char 			*ptr, *last;
-	size_t			 left, size = 0;
-	enum utf8_state		 more;
+// void
+// screen_write_cnputs(struct screen_write_ctx *ctx, ssize_t maxlen,
+//     const struct grid_cell *gcp, const char *fmt, ...)
+// {
+// 	struct grid_cell	 gc;
+// 	struct utf8_data	*ud = &gc.data;
+// 	va_list			 ap;
+// 	char			*msg;
+// 	u_char 			*ptr, *last;
+// 	size_t			 left, size = 0;
+// 	enum utf8_state		 more;
 
-	memcpy(&gc, gcp, sizeof gc);
+// 	memcpy(&gc, gcp, sizeof gc);
 
-	va_start(ap, fmt);
-	xvasprintf(&msg, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	xvasprintf(&msg, fmt, ap);
+// 	va_end(ap);
 
-	ptr = msg;
-	while (*ptr != '\0') {
-		if (ptr[0] == '#' && ptr[1] == '[') {
-			ptr += 2;
-			last = ptr + strcspn(ptr, "]");
-			if (*last == '\0') {
-				/* No ]. Not much point in doing anything. */
-				break;
-			}
-			*last = '\0';
+// 	ptr = msg;
+// 	while (*ptr != '\0') {
+// 		if (ptr[0] == '#' && ptr[1] == '[') {
+// 			ptr += 2;
+// 			last = ptr + strcspn(ptr, "]");
+// 			if (*last == '\0') {
+// 				/* No ]. Not much point in doing anything. */
+// 				break;
+// 			}
+// 			*last = '\0';
 
-			style_parse(gcp, &gc, ptr);
-			ptr = last + 1;
-			continue;
-		}
+// 			style_parse(gcp, &gc, ptr);
+// 			ptr = last + 1;
+// 			continue;
+// 		}
 
-		if (*ptr > 0x7f && utf8_open(ud, *ptr) == UTF8_MORE) {
-			ptr++;
+// 		if (*ptr > 0x7f && utf8_open(ud, *ptr) == UTF8_MORE) {
+// 			ptr++;
 
-			left = strlen(ptr);
-			if (left < (size_t)ud->size - 1)
-				break;
-			while ((more = utf8_append(ud, *ptr)) == UTF8_MORE)
-				ptr++;
-			ptr++;
+// 			left = strlen(ptr);
+// 			if (left < (size_t)ud->size - 1)
+// 				break;
+// 			while ((more = utf8_append(ud, *ptr)) == UTF8_MORE)
+// 				ptr++;
+// 			ptr++;
 
-			if (more != UTF8_DONE)
-				continue;
-			if (maxlen > 0 && size + ud->width > (size_t)maxlen) {
-				while (size < (size_t)maxlen) {
-					screen_write_putc(ctx, &gc, ' ');
-					size++;
-				}
-				break;
-			}
-			size += ud->width;
-			screen_write_cell(ctx, &gc);
-		} else {
-			if (maxlen > 0 && size + 1 > (size_t)maxlen)
-				break;
+// 			if (more != UTF8_DONE)
+// 				continue;
+// 			if (maxlen > 0 && size + ud->width > (size_t)maxlen) {
+// 				while (size < (size_t)maxlen) {
+// 					screen_write_putc(ctx, &gc, ' ');
+// 					size++;
+// 				}
+// 				break;
+// 			}
+// 			size += ud->width;
+// 			screen_write_cell(ctx, &gc);
+// 		} else {
+// 			if (maxlen > 0 && size + 1 > (size_t)maxlen)
+// 				break;
 
-			if (*ptr > 0x1f && *ptr < 0x7f) {
-				size++;
-				screen_write_putc(ctx, &gc, *ptr);
-			}
-			ptr++;
-		}
-	}
+// 			if (*ptr > 0x1f && *ptr < 0x7f) {
+// 				size++;
+// 				screen_write_putc(ctx, &gc, *ptr);
+// 			}
+// 			ptr++;
+// 		}
+// 	}
 
-	free(msg);
-}
+// 	free(msg);
+// }
 
 /* Copy from another screen. Assumes target region is big enough. */
 void

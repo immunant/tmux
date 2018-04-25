@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 /* Condition for %if, %elif, %else and %endif. */
 struct cfg_cond {
@@ -39,8 +40,8 @@ TAILQ_HEAD(cfg_conds, cfg_cond);
 
 static char		 *cfg_file;
 int			  cfg_finished;
-static char		**cfg_causes;
-static u_int		  cfg_ncauses;
+char		**cfg_causes;
+u_int		  cfg_ncauses;
 static struct cmdq_item	 *cfg_item;
 
 static enum cmd_retval
@@ -306,20 +307,20 @@ load_cfg(const char *path, struct client *c, struct cmdq_item *item, int quiet)
 	return (found);
 }
 
-void
-cfg_add_cause(const char *fmt, ...)
-{
-	va_list	 ap;
-	char	*msg;
+// void
+// cfg_add_cause(const char *fmt, ...)
+// {
+// 	va_list	 ap;
+// 	char	*msg;
 
-	va_start(ap, fmt);
-	xvasprintf(&msg, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	xvasprintf(&msg, fmt, ap);
+// 	va_end(ap);
 
-	cfg_ncauses++;
-	cfg_causes = xreallocarray(cfg_causes, cfg_ncauses, sizeof *cfg_causes);
-	cfg_causes[cfg_ncauses - 1] = msg;
-}
+// 	cfg_ncauses++;
+// 	cfg_causes = xreallocarray(cfg_causes, cfg_ncauses, sizeof *cfg_causes);
+// 	cfg_causes[cfg_ncauses - 1] = msg;
+// }
 
 void
 cfg_print_causes(struct cmdq_item *item)

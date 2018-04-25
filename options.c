@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 /*
  * Option handling; each option has a name, type and value and is stored in
@@ -517,38 +518,38 @@ options_get_style(struct options *oo, const char *name)
 	return (&o->style);
 }
 
-struct options_entry *
-options_set_string(struct options *oo, const char *name, int append,
-    const char *fmt, ...)
-{
-	struct options_entry	*o;
-	va_list			 ap;
-	char			*s, *value;
+// struct options_entry *
+// options_set_string(struct options *oo, const char *name, int append,
+//     const char *fmt, ...)
+// {
+// 	struct options_entry	*o;
+// 	va_list			 ap;
+// 	char			*s, *value;
 
-	va_start(ap, fmt);
-	xvasprintf(&s, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	xvasprintf(&s, fmt, ap);
+// 	va_end(ap);
 
-	o = options_get_only(oo, name);
-	if (o != NULL && append && OPTIONS_IS_STRING(o)) {
-		xasprintf(&value, "%s%s", o->string, s);
-		free(s);
-	} else
-		value = s;
-	if (o == NULL && *name == '@')
-		o = options_add(oo, name);
-	else if (o == NULL) {
-		o = options_default(oo, options_parent_table_entry(oo, name));
-		if (o == NULL)
-			return (NULL);
-	}
+// 	o = options_get_only(oo, name);
+// 	if (o != NULL && append && OPTIONS_IS_STRING(o)) {
+// 		xasprintf(&value, "%s%s", o->string, s);
+// 		free(s);
+// 	} else
+// 		value = s;
+// 	if (o == NULL && *name == '@')
+// 		o = options_add(oo, name);
+// 	else if (o == NULL) {
+// 		o = options_default(oo, options_parent_table_entry(oo, name));
+// 		if (o == NULL)
+// 			return (NULL);
+// 	}
 
-	if (!OPTIONS_IS_STRING(o))
-		fatalx("option %s is not a string", name);
-	free(o->string);
-	o->string = value;
-	return (o);
-}
+// 	if (!OPTIONS_IS_STRING(o))
+// 		fatalx("option %s is not a string", name);
+// 	free(o->string);
+// 	o->string = value;
+// 	return (o);
+// }
 
 struct options_entry *
 options_set_number(struct options *oo, const char *name, long long value)

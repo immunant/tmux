@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 static char	*status_redraw_get_left(struct client *, time_t,
 		     struct grid_cell *, size_t *);
@@ -37,7 +38,7 @@ static char	*status_print(struct client *, struct winlink *, time_t,
 		     struct grid_cell *);
 static char	*status_replace(struct client *, struct winlink *, const char *,
 		     time_t);
-static void	 status_message_callback(int, short, void *);
+void	 status_message_callback(int, short, void *);
 static void	 status_timer_callback(int, short, void *);
 
 static char	*status_prompt_find_history_file(void);
@@ -581,42 +582,42 @@ status_print(struct client *c, struct winlink *wl, time_t t,
 }
 
 /* Set a status line message. */
-void
-status_message_set(struct client *c, const char *fmt, ...)
-{
-	struct timeval	tv;
-	va_list		ap;
-	int		delay;
+// void
+// status_message_set(struct client *c, const char *fmt, ...)
+// {
+// 	struct timeval	tv;
+// 	va_list		ap;
+// 	int		delay;
 
-	status_message_clear(c);
+// 	status_message_clear(c);
 
-	if (c->status.old_status == NULL) {
-		c->status.old_status = xmalloc(sizeof *c->status.old_status);
-		memcpy(c->status.old_status, &c->status.status,
-		    sizeof *c->status.old_status);
-		screen_init(&c->status.status, c->tty.sx, 1, 0);
-	}
+// 	if (c->status.old_status == NULL) {
+// 		c->status.old_status = xmalloc(sizeof *c->status.old_status);
+// 		memcpy(c->status.old_status, &c->status.status,
+// 		    sizeof *c->status.old_status);
+// 		screen_init(&c->status.status, c->tty.sx, 1, 0);
+// 	}
 
-	va_start(ap, fmt);
-	xvasprintf(&c->message_string, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	xvasprintf(&c->message_string, fmt, ap);
+// 	va_end(ap);
 
-	server_client_add_message(c, "%s", c->message_string);
+// 	server_client_add_message(c, "%s", c->message_string);
 
-	delay = options_get_number(c->session->options, "display-time");
-	if (delay > 0) {
-		tv.tv_sec = delay / 1000;
-		tv.tv_usec = (delay % 1000) * 1000L;
+// 	delay = options_get_number(c->session->options, "display-time");
+// 	if (delay > 0) {
+// 		tv.tv_sec = delay / 1000;
+// 		tv.tv_usec = (delay % 1000) * 1000L;
 
-		if (event_initialized(&c->message_timer))
-			evtimer_del(&c->message_timer);
-		evtimer_set(&c->message_timer, status_message_callback, c);
-		evtimer_add(&c->message_timer, &tv);
-	}
+// 		if (event_initialized(&c->message_timer))
+// 			evtimer_del(&c->message_timer);
+// 		evtimer_set(&c->message_timer, status_message_callback, c);
+// 		evtimer_add(&c->message_timer, &tv);
+// 	}
 
-	c->tty.flags |= (TTY_NOCURSOR|TTY_FREEZE);
-	c->flags |= CLIENT_STATUS;
-}
+// 	c->tty.flags |= (TTY_NOCURSOR|TTY_FREEZE);
+// 	c->flags |= CLIENT_STATUS;
+// }
 
 /* Clear status line message. */
 void
@@ -636,7 +637,7 @@ status_message_clear(struct client *c)
 }
 
 /* Clear status line message after timer expires. */
-static void
+void
 status_message_callback(__unused int fd, __unused short event, void *data)
 {
 	struct client	*c = data;

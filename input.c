@@ -121,7 +121,7 @@ struct input_ctx {
 struct input_transition;
 static int	input_split(struct input_ctx *);
 static int	input_get(struct input_ctx *, u_int, int, int);
-static void printflike(2, 3) input_reply(struct input_ctx *, const char *, ...);
+// static void printflike(2, 3) input_reply(struct input_ctx *, const char *, ...);
 static void	input_set_state(struct window_pane *,
 		    const struct input_transition *);
 static void	input_reset_cell(struct input_ctx *);
@@ -990,19 +990,19 @@ input_get(struct input_ctx *ictx, u_int validx, int minval, int defval)
 }
 
 /* Reply to terminal query. */
-static void
-input_reply(struct input_ctx *ictx, const char *fmt, ...)
-{
-	va_list	ap;
-	char   *reply;
+// static void
+// input_reply(struct input_ctx *ictx, const char *fmt, ...)
+// {
+// 	va_list	ap;
+// 	char   *reply;
 
-	va_start(ap, fmt);
-	xvasprintf(&reply, fmt, ap);
-	va_end(ap);
+// 	va_start(ap, fmt);
+// 	xvasprintf(&reply, fmt, ap);
+// 	va_end(ap);
 
-	bufferevent_write(ictx->wp->event, reply, strlen(reply));
-	free(reply);
-}
+// 	bufferevent_write(ictx->wp->event, reply, strlen(reply));
+// 	free(reply);
+// }
 
 /* Clear saved state. */
 static void

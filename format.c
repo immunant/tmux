@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 /*
  * Build a list of key-value pairs and use them to expand #{key} entries in a
@@ -694,31 +695,31 @@ format_free(struct format_tree *ft)
 }
 
 /* Add a key-value pair. */
-void
-format_add(struct format_tree *ft, const char *key, const char *fmt, ...)
-{
-	struct format_entry	*fe;
-	struct format_entry	*fe_now;
-	va_list			 ap;
+// void
+// format_add(struct format_tree *ft, const char *key, const char *fmt, ...)
+// {
+// 	struct format_entry	*fe;
+// 	struct format_entry	*fe_now;
+// 	va_list			 ap;
 
-	fe = xmalloc(sizeof *fe);
-	fe->key = xstrdup(key);
+// 	fe = xmalloc(sizeof *fe);
+// 	fe->key = xstrdup(key);
 
-	fe_now = RB_INSERT(format_entry_tree, &ft->tree, fe);
-	if (fe_now != NULL) {
-		free(fe->key);
-		free(fe);
-		free(fe_now->value);
-		fe = fe_now;
-	}
+// 	fe_now = RB_INSERT(format_entry_tree, &ft->tree, fe);
+// 	if (fe_now != NULL) {
+// 		free(fe->key);
+// 		free(fe);
+// 		free(fe_now->value);
+// 		fe = fe_now;
+// 	}
 
-	fe->cb = NULL;
-	fe->t = 0;
+// 	fe->cb = NULL;
+// 	fe->t = 0;
 
-	va_start(ap, fmt);
-	xvasprintf(&fe->value, fmt, ap);
-	va_end(ap);
-}
+// 	va_start(ap, fmt);
+// 	xvasprintf(&fe->value, fmt, ap);
+// 	va_end(ap);
+// }
 
 /* Add a key and time. */
 static void

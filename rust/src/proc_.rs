@@ -1,17 +1,9 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use compat::imsg::{imsg, imsg_hdr, imsgbuf, msgbuf, imsg_free, imsg_clear, imsg_init, imsg_get, imsg_compose};
+use log::{log_open, log_toggle};
+use xmalloc::xcalloc;
+
 extern "C" {
     pub type _IO_FILE_plus;
     pub type format_tree;
@@ -26,6 +18,8 @@ extern "C" {
     pub type screen_titles;
     pub type args_entry;
     pub type event_base;
+    #[no_mangle]
+    fn imsg_read(_: *mut imsgbuf) -> ssize_t; // Miguel is looking into this translation issue
     #[no_mangle]
     fn uname(__name: *mut utsname) -> libc::c_int;
     #[no_mangle]
@@ -98,20 +92,6 @@ extern "C" {
     #[no_mangle]
     fn msgbuf_write(_: *mut msgbuf) -> libc::c_int;
     #[no_mangle]
-    fn imsg_init(_: *mut imsgbuf, _: libc::c_int) -> ();
-    #[no_mangle]
-    fn imsg_read(_: *mut imsgbuf) -> ssize_t;
-    #[no_mangle]
-    fn imsg_get(_: *mut imsgbuf, _: *mut imsg) -> ssize_t;
-    #[no_mangle]
-    fn imsg_compose(_: *mut imsgbuf, _: uint32_t, _: uint32_t, _: pid_t,
-                    _: libc::c_int, _: *const libc::c_void, _: uint16_t)
-     -> libc::c_int;
-    #[no_mangle]
-    fn imsg_free(_: *mut imsg) -> ();
-    #[no_mangle]
-    fn imsg_clear(_: *mut imsgbuf) -> ();
-    #[no_mangle]
     fn setproctitle(_: *const libc::c_char, ...) -> ();
     #[no_mangle]
     static mut BSDopterr: libc::c_int;
@@ -123,8 +103,6 @@ extern "C" {
     static mut BSDoptreset: libc::c_int;
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
-    #[no_mangle]
-    fn xcalloc(_: size_t, _: size_t) -> *mut libc::c_void;
     #[no_mangle]
     fn xstrdup(_: *const libc::c_char) -> *mut libc::c_char;
     #[no_mangle]
@@ -149,10 +127,6 @@ extern "C" {
     static mut ptm_fd: libc::c_int;
     #[no_mangle]
     fn log_debug(_: *const libc::c_char, ...) -> ();
-    #[no_mangle]
-    fn log_open(_: *const libc::c_char) -> ();
-    #[no_mangle]
-    fn log_toggle(_: *const libc::c_char) -> ();
     #[no_mangle]
     static mut cfg_finished: libc::c_int;
     #[no_mangle]
@@ -465,21 +439,7 @@ pub struct tty {
     pub key_tree: *mut tty_key,
 }
 pub type cc_t = libc::c_uchar;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct msgbuf {
-    pub bufs: unnamed_31,
-    pub queued: uint32_t,
-    pub fd: libc::c_int,
-}
 pub const LINE_SEL_LEFT_RIGHT: unnamed_11 = 1;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct imsg {
-    pub hdr: imsg_hdr,
-    pub fd: libc::c_int,
-    pub data: *mut libc::c_void,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_10 {
@@ -827,15 +787,6 @@ pub struct session {
     pub entry: unnamed_1,
 }
 pub const LINE_SEL_RIGHT_LEFT: unnamed_11 = 2;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct imsg_hdr {
-    pub type_0: uint32_t,
-    pub len: uint16_t,
-    pub flags: uint16_t,
-    pub peerid: uint32_t,
-    pub pid: uint32_t,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct cmdq_list {
@@ -1312,15 +1263,6 @@ pub struct mouse_event {
     pub wp: libc::c_int,
     pub sgr_type: u_int,
     pub sgr_b: u_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct imsgbuf {
-    pub fds: unnamed_42,
-    pub r: ibuf_read,
-    pub w: msgbuf,
-    pub fd: libc::c_int,
-    pub pid: pid_t,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]

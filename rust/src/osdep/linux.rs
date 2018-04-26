@@ -1,17 +1,12 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+#[link(name = "event")]
+extern "C" {
+    pub type event_base;
+    #[no_mangle]
+    fn event_init() -> *mut event_base;
+}
+
 extern "C" {
     pub type args_entry;
     pub type format_job_tree;
@@ -20,7 +15,6 @@ extern "C" {
     pub type _IO_FILE_plus;
     pub type bufferevent_ops;
     pub type format_tree;
-    pub type event_base;
     pub type tty_code;
     pub type tmuxpeer;
     pub type hooks;
@@ -59,8 +53,6 @@ extern "C" {
     static mut sys_nerr: libc::c_int;
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
-    #[no_mangle]
-    fn event_init() -> *mut event_base;
     #[no_mangle]
     fn free(__ptr: *mut libc::c_void) -> ();
     #[no_mangle]

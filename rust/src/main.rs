@@ -11,9 +11,24 @@
 #![allow ( dead_code )]
 #![allow ( mutable_transmutes )]
 #![allow ( unused_mut )]
+
 extern crate libc;
+
+mod cfg;
+mod client;
+mod compat;
+mod log;
+mod proc_;
+mod osdep;
+mod xmalloc;
+
+use cfg::set_cfg_file;
+use client::{client_main, clients, cmdq_item};
+use compat::getprogname::getprogname;
+use log::log_add_level;
+use osdep::{event_base, osdep_event_init};
+
 extern "C" {
-    pub type event_base;
     pub type _IO_FILE_plus;
     pub type hooks;
     pub type input_ctx;
@@ -22,11 +37,9 @@ extern "C" {
     pub type environ;
     pub type options_entry;
     pub type format_tree;
-    pub type tmuxpeer;
     pub type args_entry;
     pub type bufferevent_ops;
     pub type options;
-    pub type tmuxproc;
     pub type tty_code;
     pub type screen_titles;
     #[no_mangle]
@@ -134,8 +147,6 @@ extern "C" {
     fn strlcpy(_: *mut libc::c_char, _: *const libc::c_char, _: libc::c_ulong)
      -> libc::c_ulong;
     #[no_mangle]
-    fn getprogname() -> *const libc::c_char;
-    #[no_mangle]
     fn getptmfd() -> libc::c_int;
     #[no_mangle]
     static mut BSDopterr: libc::c_int;
@@ -172,13 +183,7 @@ extern "C" {
     #[no_mangle]
     static mut socket_path: *const libc::c_char;
     #[no_mangle]
-    static mut shell_command: *const libc::c_char;
-    #[no_mangle]
-    static mut ptm_fd: libc::c_int;
-    #[no_mangle]
     static mut cfg_finished: libc::c_int;
-    #[no_mangle]
-    fn set_cfg_file(_: *const libc::c_char) -> ();
     #[no_mangle]
     fn hooks_create(_: *mut hooks) -> *mut hooks;
     #[no_mangle]
@@ -205,16 +210,9 @@ extern "C" {
     #[no_mangle]
     fn environ_put(_: *mut environ, _: *const libc::c_char) -> ();
     #[no_mangle]
-    static mut tty_terms: tty_terms;
-    #[no_mangle]
     static mut cmd_table: [*const cmd_entry; 0];
     #[no_mangle]
-    fn client_main(_: *mut event_base, _: libc::c_int,
-                   _: *mut *mut libc::c_char, _: libc::c_int) -> libc::c_int;
-    #[no_mangle]
     static mut key_tables: key_tables;
-    #[no_mangle]
-    static mut server_proc: *mut tmuxproc;
     #[no_mangle]
     static mut clients: clients;
     #[no_mangle]
@@ -241,11 +239,14 @@ extern "C" {
     static mut sessions: sessions;
     #[no_mangle]
     static mut session_groups: session_groups;
-    #[no_mangle]
-    fn osdep_event_init() -> *mut event_base;
-    #[no_mangle]
-    fn log_add_level() -> ();
 }
+
+#[no_mangle]
+pub static mut shell_command: *const libc::c_char = 0 as *const libc::c_char;
+
+#[no_mangle]
+pub static mut ptm_fd: libc::c_int = 0;
+
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct cmd_find_state {
@@ -352,27 +353,6 @@ pub const _NL_MONETARY_DECIMAL_POINT_WC: unnamed_18 = 262187;
 pub union unnamed_1 {
     ev_next_with_common_timeout: unnamed_19,
     min_heap_idx: libc::c_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmdq_item {
-    pub name: *const libc::c_char,
-    pub queue: *mut cmdq_list,
-    pub next: *mut cmdq_item,
-    pub client: *mut client,
-    pub type_0: cmdq_type,
-    pub group: u_int,
-    pub number: u_int,
-    pub time: time_t,
-    pub flags: libc::c_int,
-    pub shared: *mut cmdq_shared,
-    pub source: cmd_find_state,
-    pub target: cmd_find_state,
-    pub cmdlist: *mut cmd_list,
-    pub cmd: *mut cmd,
-    pub cb: cmdq_cb,
-    pub data: *mut libc::c_void,
-    pub entry: unnamed_14,
 }
 pub const _NL_IDENTIFICATION_SOURCE: unnamed_18 = 786433;
 pub type key_code = libc::c_ulonglong;
@@ -543,7 +523,7 @@ pub const _NL_NAME_NAME_MISS: unnamed_18 = 524292;
 pub const ABMON_6: unnamed_18 = 131091;
 pub const _NL_COLLATE_EXTRAWC: unnamed_18 = 196619;
 pub type prompt_input_cb =
-    Option<unsafe extern "C" fn(_: *mut client, _: *mut libc::c_void,
+    Option<unsafe extern "C" fn(_: *mut client::client, _: *mut libc::c_void,
                                 _: *const libc::c_char, _: libc::c_int)
                -> libc::c_int>;
 pub const _NL_MONETARY_DUO_VALID_FROM: unnamed_18 = 262184;
@@ -707,12 +687,6 @@ pub const TTY_VT420: unnamed_29 = 5;
 pub const ABDAY_6: unnamed_18 = 131077;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct clients {
-    pub tqh_first: *mut client,
-    pub tqh_last: *mut *mut client,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct unnamed_12 {
     pub ev_signal_next: unnamed_3,
     pub ev_ncalls: libc::c_short,
@@ -729,13 +703,13 @@ pub struct window_mode {
     pub free: Option<unsafe extern "C" fn(_: *mut window_pane) -> ()>,
     pub resize: Option<unsafe extern "C" fn(_: *mut window_pane, _: u_int,
                                             _: u_int) -> ()>,
-    pub key: Option<unsafe extern "C" fn(_: *mut window_pane, _: *mut client,
+    pub key: Option<unsafe extern "C" fn(_: *mut window_pane, _: *mut client::client,
                                          _: *mut session, _: key_code,
                                          _: *mut mouse_event) -> ()>,
     pub key_table: Option<unsafe extern "C" fn(_: *mut window_pane)
                               -> *const libc::c_char>,
     pub command: Option<unsafe extern "C" fn(_: *mut window_pane,
-                                             _: *mut client, _: *mut session,
+                                             _: *mut client::client, _: *mut session,
                                              _: *mut args,
                                              _: *mut mouse_event) -> ()>,
 }
@@ -794,16 +768,6 @@ pub type cmd_find_type = libc::c_uint;
 pub const _NL_IDENTIFICATION_DATE: unnamed_18 = 786445;
 pub const _NL_WABMON_8: unnamed_18 = 131145;
 pub const _NL_CTYPE_WIDTH: unnamed_18 = 12;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct tty_term {
-    pub name: *mut libc::c_char,
-    pub references: u_int,
-    pub acs: [[libc::c_char; 2]; 256],
-    pub codes: *mut tty_code,
-    pub flags: libc::c_int,
-    pub entry: unnamed_22,
-}
 pub const _NL_WMON_6: unnamed_18 = 131155;
 pub const JOB_CLOSED: unnamed_33 = 2;
 #[derive ( Copy , Clone )]
@@ -936,67 +900,6 @@ pub const _NL_ADDRESS_POSTAL_FMT: unnamed_18 = 589824;
 pub const _NL_TIME_TIMEZONE: unnamed_18 = 131179;
 pub const _NL_TELEPHONE_TEL_INT_FMT: unnamed_18 = 655360;
 pub const _NL_WABDAY_2: unnamed_18 = 131125;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct client {
-    pub name: *const libc::c_char,
-    pub peer: *mut tmuxpeer,
-    pub queue: cmdq_list,
-    pub pid: pid_t,
-    pub fd: libc::c_int,
-    pub event: event,
-    pub retval: libc::c_int,
-    pub creation_time: timeval,
-    pub activity_time: timeval,
-    pub environ: *mut environ,
-    pub jobs: *mut format_job_tree,
-    pub title: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub term: *mut libc::c_char,
-    pub ttyname: *mut libc::c_char,
-    pub tty: tty,
-    pub written: size_t,
-    pub discarded: size_t,
-    pub redraw: size_t,
-    pub stdin_callback: Option<unsafe extern "C" fn(_: *mut client,
-                                                    _: libc::c_int,
-                                                    _: *mut libc::c_void)
-                                   -> ()>,
-    pub stdin_callback_data: *mut libc::c_void,
-    pub stdin_data: *mut evbuffer,
-    pub stdin_closed: libc::c_int,
-    pub stdout_data: *mut evbuffer,
-    pub stderr_data: *mut evbuffer,
-    pub repeat_timer: event,
-    pub click_timer: event,
-    pub click_button: u_int,
-    pub status: status_line,
-    pub flags: libc::c_int,
-    pub keytable: *mut key_table,
-    pub identify_timer: event,
-    pub identify_callback: Option<unsafe extern "C" fn(_: *mut client,
-                                                       _: *mut window_pane)
-                                      -> ()>,
-    pub identify_callback_data: *mut libc::c_void,
-    pub message_string: *mut libc::c_char,
-    pub message_timer: event,
-    pub message_next: u_int,
-    pub message_log: unnamed_21,
-    pub prompt_string: *mut libc::c_char,
-    pub prompt_buffer: *mut utf8_data,
-    pub prompt_index: size_t,
-    pub prompt_inputcb: prompt_input_cb,
-    pub prompt_freecb: prompt_free_cb,
-    pub prompt_data: *mut libc::c_void,
-    pub prompt_hindex: u_int,
-    pub prompt_mode: unnamed,
-    pub prompt_flags: libc::c_int,
-    pub session: *mut session,
-    pub last_session: *mut session,
-    pub wlmouse: libc::c_int,
-    pub references: libc::c_int,
-    pub entry: unnamed_31,
-}
 pub const _NL_WDAY_6: unnamed_18 = 131136;
 pub const _NL_CTYPE_TRANSLIT_DEFAULT_MISSING_LEN: unnamed_18 = 66;
 pub const ABMON_4: unnamed_18 = 131089;
@@ -1014,12 +917,6 @@ pub const _NL_CTYPE_EXTRA_MAP_3: unnamed_18 = 74;
 pub const ALT_DIGITS: unnamed_18 = 131119;
 pub const _NL_COLLATE_INDIRECTMB: unnamed_18 = 196613;
 pub const DAY_4: unnamed_18 = 131082;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_22 {
-    pub le_next: *mut tty_term,
-    pub le_prev: *mut *mut tty_term,
-}
 pub const _NL_ADDRESS_COUNTRY_NAME: unnamed_18 = 589825;
 pub type uint16_t = libc::c_ushort;
 #[derive ( Copy , Clone )]
@@ -1373,8 +1270,8 @@ pub const _NL_IDENTIFICATION_REVISION: unnamed_18 = 786444;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_31 {
-    pub tqe_next: *mut client,
-    pub tqe_prev: *mut *mut client,
+    pub tqe_next: *mut client::client,
+    pub tqe_prev: *mut *mut client::client,
 }
 pub const _NL_MONETARY_CRNCYSTR: unnamed_18 = 262159;
 pub type __ino_t = libc::c_ulong;
@@ -1461,15 +1358,6 @@ pub const OPTIONS_TABLE_ARRAY: options_table_type = 8;
 pub const _NL_MEASUREMENT_MEASUREMENT: unnamed_18 = 720896;
 pub const _NL_WERA_D_T_FMT: unnamed_18 = 131171;
 pub const _NL_NAME_NAME_MRS: unnamed_18 = 524291;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct tty_key {
-    pub ch: libc::c_char,
-    pub key: key_code,
-    pub left: *mut tty_key,
-    pub right: *mut tty_key,
-    pub next: *mut tty_key,
-}
 pub const _NL_CTYPE_GAP2: unnamed_18 = 4;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -1537,48 +1425,6 @@ pub const _NL_WD_T_FMT: unnamed_18 = 131164;
 pub const _NL_CTYPE_CLASS_OFFSET: unnamed_18 = 17;
 pub type options_table_type = libc::c_uint;
 pub const _NL_WMON_5: unnamed_18 = 131154;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct tty {
-    pub client: *mut client,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub cx: u_int,
-    pub cy: u_int,
-    pub cstyle: u_int,
-    pub ccolour: *mut libc::c_char,
-    pub mode: libc::c_int,
-    pub rlower: u_int,
-    pub rupper: u_int,
-    pub rleft: u_int,
-    pub rright: u_int,
-    pub fd: libc::c_int,
-    pub event_in: event,
-    pub in_0: *mut evbuffer,
-    pub event_out: event,
-    pub out: *mut evbuffer,
-    pub timer: event,
-    pub discarded: size_t,
-    pub tio: termios,
-    pub cell: grid_cell,
-    pub last_wp: libc::c_int,
-    pub last_cell: grid_cell,
-    pub flags: libc::c_int,
-    pub term: *mut tty_term,
-    pub term_name: *mut libc::c_char,
-    pub term_flags: libc::c_int,
-    pub term_type: unnamed_29,
-    pub mouse: mouse_event,
-    pub mouse_drag_flag: libc::c_int,
-    pub mouse_drag_update: Option<unsafe extern "C" fn(_: *mut client,
-                                                       _: *mut mouse_event)
-                                      -> ()>,
-    pub mouse_drag_release: Option<unsafe extern "C" fn(_: *mut client,
-                                                        _: *mut mouse_event)
-                                       -> ()>,
-    pub key_timer: event,
-    pub key_tree: *mut tty_key,
-}
 pub const _NL_WABMON_10: unnamed_18 = 131147;
 pub const _NL_WDAY_3: unnamed_18 = 131133;
 pub const _NL_MONETARY_DUO_N_CS_PRECEDES: unnamed_18 = 262172;
@@ -1588,11 +1434,6 @@ pub const _NL_NUM_LC_NUMERIC: unnamed_18 = 65542;
 pub const _NL_WDAY_2: unnamed_18 = 131132;
 pub const _NL_CTYPE_INDIGITS_WC_LEN: unnamed_18 = 30;
 pub const _NL_WABMON_12: unnamed_18 = 131149;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct tty_terms {
-    pub lh_first: *mut tty_term,
-}
 pub const _NL_WABMON_2: unnamed_18 = 131139;
 pub const D_FMT: unnamed_18 = 131113;
 pub type unnamed_37 = libc::c_uint;

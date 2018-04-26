@@ -1,17 +1,10 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use osdep::event_base;
+use compat::imsg::imsg;
+use proc_::{proc_send, proc_exit, proc_loop, proc_start, proc_set_signals, proc_clear_signals, proc_add_peer, tmuxpeer, tmuxproc};
+use xmalloc::xmalloc;
+
 extern "C" {
     pub type _IO_FILE_plus;
     pub type bufferevent_ops;
@@ -21,13 +14,10 @@ extern "C" {
     pub type hooks;
     pub type args_entry;
     pub type format_job_tree;
-    pub type tmuxproc;
-    pub type tmuxpeer;
     pub type input_ctx;
     pub type format_tree;
     pub type evbuffer;
     pub type tty_code;
-    pub type event_base;
     #[no_mangle]
     fn open(__file: *const libc::c_char, __oflag: libc::c_int, ...)
      -> libc::c_int;
@@ -178,8 +168,6 @@ extern "C" {
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
     #[no_mangle]
-    fn xmalloc(_: size_t) -> *mut libc::c_void;
-    #[no_mangle]
     fn xstrdup(_: *const libc::c_char) -> *mut libc::c_char;
     #[no_mangle]
     fn xasprintf(_: *mut *mut libc::c_char, _: *const libc::c_char, ...)
@@ -211,29 +199,6 @@ extern "C" {
     fn setblocking(_: libc::c_int, _: libc::c_int) -> ();
     #[no_mangle]
     fn find_home() -> *const libc::c_char;
-    #[no_mangle]
-    fn proc_send(_: *mut tmuxpeer, _: msgtype, _: libc::c_int,
-                 _: *const libc::c_void, _: size_t) -> libc::c_int;
-    #[no_mangle]
-    fn proc_start(_: *const libc::c_char) -> *mut tmuxproc;
-    #[no_mangle]
-    fn proc_loop(_: *mut tmuxproc,
-                 _: Option<unsafe extern "C" fn() -> libc::c_int>) -> ();
-    #[no_mangle]
-    fn proc_exit(_: *mut tmuxproc) -> ();
-    #[no_mangle]
-    fn proc_set_signals(_: *mut tmuxproc,
-                        _: Option<unsafe extern "C" fn(_: libc::c_int) -> ()>)
-     -> ();
-    #[no_mangle]
-    fn proc_clear_signals(_: *mut tmuxproc, _: libc::c_int) -> ();
-    #[no_mangle]
-    fn proc_add_peer(_: *mut tmuxproc, _: libc::c_int,
-                     _:
-                         Option<unsafe extern "C" fn(_: *mut imsg,
-                                                     _: *mut libc::c_void)
-                                    -> ()>, _: *mut libc::c_void)
-     -> *mut tmuxpeer;
     #[no_mangle]
     static mut cfg_finished: libc::c_int;
     #[no_mangle]
@@ -385,13 +350,6 @@ pub struct sigaction {
     pub sa_restorer: Option<unsafe extern "C" fn() -> ()>,
 }
 pub const MSG_RESIZE: msgtype = 208;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct imsg {
-    pub hdr: imsg_hdr,
-    pub fd: libc::c_int,
-    pub data: *mut libc::c_void,
-}
 pub const CMD_RETURN_ERROR: cmd_retval = -1;
 #[derive ( Copy , Clone )]
 #[repr ( C )]

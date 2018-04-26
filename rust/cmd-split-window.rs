@@ -1485,7 +1485,7 @@ pub static mut cmd_split_window_entry: cmd_entry =
                                      b"bc:dfF:l:hp:Pt:v\x00" as *const u8 as
                                          *const libc::c_char,
                                  lower: 0i32,
-                                 upper: 1i32.wrapping_neg(),},
+                                 upper: -1i32,},
                   usage:
                       b"[-bdfhvP] [-c start-directory] [-F format] [-p percentage|-l size] [-t target-pane] [command]\x00"
                           as *const u8 as *const libc::c_char,

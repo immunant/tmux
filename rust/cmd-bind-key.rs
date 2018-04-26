@@ -1215,7 +1215,7 @@ pub static mut cmd_bind_key_entry: cmd_entry =
                                      b"cnrT:\x00" as *const u8 as
                                          *const libc::c_char,
                                  lower: 2i32,
-                                 upper: 1i32.wrapping_neg(),},
+                                 upper: -1i32,},
                   usage:
                       b"[-cnr] [-T key-table] key command [arguments]\x00" as
                           *const u8 as *const libc::c_char,

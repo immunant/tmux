@@ -2012,7 +2012,7 @@ pub static mut cmd_new_session_entry: cmd_entry =
                                      b"Ac:dDEF:n:Ps:t:x:y:\x00" as *const u8
                                          as *const libc::c_char,
                                  lower: 0i32,
-                                 upper: 1i32.wrapping_neg(),},
+                                 upper: -1i32,},
                   usage:
                       b"[-AdDEP] [-c start-directory] [-F format] [-n window-name] [-s session-name] [-t target-session] [-x width] [-y height] [command]\x00"
                           as *const u8 as *const libc::c_char,

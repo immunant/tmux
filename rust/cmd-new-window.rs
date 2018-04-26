@@ -1387,7 +1387,7 @@ pub static mut cmd_new_window_entry: cmd_entry =
                                      b"ac:dF:kn:Pt:\x00" as *const u8 as
                                          *const libc::c_char,
                                  lower: 0i32,
-                                 upper: 1i32.wrapping_neg(),},
+                                 upper: -1i32,},
                   usage:
                       b"[-adkP] [-c start-directory] [-F format] [-n window-name] [-t target-window] [command]\x00"
                           as *const u8 as *const libc::c_char,

@@ -1350,7 +1350,7 @@ pub static mut cmd_respawn_window_entry: cmd_entry =
                                      b"c:kt:\x00" as *const u8 as
                                          *const libc::c_char,
                                  lower: 0i32,
-                                 upper: 1i32.wrapping_neg(),},
+                                 upper: -1i32,},
                   usage:
                       b"[-c start-directory] [-k] [-t target-window] [command]\x00"
                           as *const u8 as *const libc::c_char,

@@ -1828,7 +1828,7 @@ unsafe extern "C" fn server_start_error(mut item: *mut cmdq_item,
 #[no_mangle]
 pub unsafe extern "C" fn server_update_socket() -> () {
     let mut s: *mut session = 0 as *mut session;
-    static mut last: libc::c_int = unsafe { 1i32.wrapping_neg() };
+    static mut last: libc::c_int = unsafe { -1i32 };
     let mut n: libc::c_int = 0;
     let mut mode: libc::c_int = 0;
     let mut sb: stat =

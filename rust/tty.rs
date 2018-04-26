@@ -1658,7 +1658,7 @@ pub unsafe extern "C" fn tty_create_log() -> () {
         fatal(b"fcntl failed\x00" as *const u8 as *const libc::c_char);
     } else { return; };
 }
-static mut tty_log_fd: libc::c_int = unsafe { 1i32.wrapping_neg() };
+static mut tty_log_fd: libc::c_int = unsafe { -1i32 };
 #[no_mangle]
 pub unsafe extern "C" fn tty_raw(mut tty: *mut tty,
                                  mut s: *const libc::c_char) -> () {

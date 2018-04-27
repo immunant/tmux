@@ -1,3 +1,17 @@
+#ifndef __TMUX_VARIADIC_H
+#define __TMUX_VARIADIC_H
+
+struct cmdq_item;
+struct client;
+struct environ;
+struct format_tree;
+struct hooks;
+struct cmd_find_state;
+struct options;
+struct screen_write_ctx;
+struct grid_cell;
+struct window_pane;
+
 void printflike(3, 4) args_print_add(char **buf, size_t *len, const char *fmt, ...);
 void cfg_add_cause(const char *fmt, ...);
 void cmdq_format(struct cmdq_item *item, const char *key, const char *fmt, ...);
@@ -23,3 +37,5 @@ void status_message_set(struct client *c, const char *fmt, ...);
 void window_copy_add(struct window_pane *wp, const char *fmt, ...);
 int xasprintf(char **ret, const char *fmt, ...);
 int xsnprintf(char *str, size_t len, const char *fmt, ...);
+
+#endif // __TMUX_VARIADIC_H

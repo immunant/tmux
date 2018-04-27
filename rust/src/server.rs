@@ -4,6 +4,7 @@ use client::{client, clients};
 use session::session;
 use proc_::{tmuxproc, event_base, proc_send, proc_start, proc_loop, proc_set_signals, proc_clear_signals, proc_toggle_log};
 use notify::notify_client;
+use window::{window, windows, window_pane, window_panes, windows_RB_MINMAX, windows_RB_NEXT};
 
 extern "C" {
     pub type bufferevent_ops;
@@ -247,10 +248,6 @@ extern "C" {
     fn window_pane_destroy_ready(_: *mut window_pane) -> libc::c_int;
     #[no_mangle]
     fn log_debug(_: *const libc::c_char, ...) -> ();
-    #[no_mangle]
-    fn windows_RB_NEXT(_: *mut window) -> *mut window;
-    #[no_mangle]
-    fn windows_RB_MINMAX(_: *mut windows, _: libc::c_int) -> *mut window;
     #[no_mangle]
     fn session_destroy(_: *mut session, _: *const libc::c_char) -> ();
     #[no_mangle]
@@ -506,12 +503,6 @@ pub struct winlink {
     pub entry: unnamed_39,
     pub wentry: unnamed_17,
     pub sentry: unnamed_18,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_panes {
-    pub tqh_first: *mut window_pane,
-    pub tqh_last: *mut *mut window_pane,
 }
 pub const MSG_VERSION: msgtype = 12;
 #[derive ( Copy , Clone )]
@@ -887,11 +878,6 @@ pub struct status_line {
 }
 pub const MSG_WAKEUP: msgtype = 216;
 pub const TTY_VT102: unnamed_20 = 2;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct windows {
-    pub rbh_root: *mut window,
-}
 pub const MSG_STDOUT: msgtype = 213;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -951,34 +937,6 @@ pub struct window_mode {
                                              _: *mut client, _: *mut session,
                                              _: *mut args,
                                              _: *mut mouse_event) -> ()>,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub name_event: event,
-    pub name_time: timeval,
-    pub alerts_timer: event,
-    pub activity_time: timeval,
-    pub active: *mut window_pane,
-    pub last: *mut window_pane,
-    pub panes: window_panes,
-    pub lastlayout: libc::c_int,
-    pub layout_root: *mut layout_cell,
-    pub saved_layout_root: *mut layout_cell,
-    pub old_layout: *mut libc::c_char,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub flags: libc::c_int,
-    pub alerts_queued: libc::c_int,
-    pub alerts_entry: unnamed_3,
-    pub options: *mut options,
-    pub style: grid_cell,
-    pub active_style: grid_cell,
-    pub references: u_int,
-    pub winlinks: unnamed_22,
-    pub entry: unnamed_19,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -1249,54 +1207,6 @@ pub type tcflag_t = libc::c_uint;
 pub type __ino_t = libc::c_ulong;
 pub const SOCK_RDM: __socket_type = 4;
 pub const LINE_SEL_LEFT_RIGHT: unnamed_5 = 1;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_pane {
-    pub id: u_int,
-    pub active_point: u_int,
-    pub window: *mut window,
-    pub layout_cell: *mut layout_cell,
-    pub saved_layout_cell: *mut layout_cell,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub osx: u_int,
-    pub osy: u_int,
-    pub xoff: u_int,
-    pub yoff: u_int,
-    pub flags: libc::c_int,
-    pub argc: libc::c_int,
-    pub argv: *mut *mut libc::c_char,
-    pub shell: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub pid: pid_t,
-    pub tty: [libc::c_char; 32],
-    pub status: libc::c_int,
-    pub fd: libc::c_int,
-    pub event: *mut bufferevent,
-    pub resize_timer: event,
-    pub ictx: *mut input_ctx,
-    pub colgc: grid_cell,
-    pub palette: *mut libc::c_int,
-    pub pipe_fd: libc::c_int,
-    pub pipe_event: *mut bufferevent,
-    pub pipe_off: size_t,
-    pub screen: *mut screen,
-    pub base: screen,
-    pub status_screen: screen,
-    pub status_size: size_t,
-    pub saved_cx: u_int,
-    pub saved_cy: u_int,
-    pub saved_grid: *mut grid,
-    pub saved_cell: grid_cell,
-    pub mode: *const window_mode,
-    pub modedata: *mut libc::c_void,
-    pub modetimer: event,
-    pub modelast: time_t,
-    pub modeprefix: u_int,
-    pub searchstr: *mut libc::c_char,
-    pub entry: unnamed_0,
-    pub tree_entry: unnamed_1,
-}
 pub type __socklen_t = libc::c_uint;
 #[derive ( Copy , Clone )]
 #[repr ( C )]

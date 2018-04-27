@@ -309,10 +309,6 @@ extern "C" {
     fn screen_resize(_: *mut screen, _: u_int, _: u_int, _: libc::c_int)
      -> ();
     #[no_mangle]
-    static mut windows: windows;
-    #[no_mangle]
-    static mut all_window_panes: window_pane_tree;
-    #[no_mangle]
     fn fatalx(_: *const libc::c_char, ...) -> !;
     #[no_mangle]
     fn log_debug(_: *const libc::c_char, ...) -> ();
@@ -1460,6 +1456,15 @@ pub const KEYC_MOUSEDRAGEND1_STATUS: unnamed_37 = 268435493;
 pub const KEYC_WHEELDOWN_BORDER: unnamed_37 = 268435506;
 pub const KEYC_DOUBLECLICK3_PANE: unnamed_37 = 268435513;
 pub const KEYC_MOUSEDOWN3_BORDER: unnamed_37 = 268435473;
+#[no_mangle]
+pub static mut windows_static: windows = // REMINDER: Renamed from "windows" due to conflicting with windows type
+    unsafe { windows{rbh_root: 0 as *const window as *mut window,} };
+#[no_mangle]
+pub static mut all_window_panes: window_pane_tree =
+    unsafe {
+        window_pane_tree{rbh_root:
+                             0 as *const window_pane as *mut window_pane,}
+    };
 #[no_mangle]
 pub unsafe extern "C" fn window_cmp(mut w1: *mut window, mut w2: *mut window)
  -> libc::c_int {
@@ -4331,7 +4336,7 @@ pub unsafe extern "C" fn window_remove_ref(mut w: *mut window,
 unsafe extern "C" fn window_destroy(mut w: *mut window) -> () {
     log_debug(b"window @%u destroyed (%d references)\x00" as *const u8 as
                   *const libc::c_char, (*w).id, (*w).references);
-    windows_RB_REMOVE(&mut windows as *mut windows, w);
+    windows_RB_REMOVE(&mut windows_static as *mut windows, w);
     if (*w).layout_root != 0 as *mut libc::c_void as *mut layout_cell {
         layout_free_cell((*w).layout_root);
     }
@@ -4694,7 +4699,7 @@ pub unsafe extern "C" fn window_find_by_id(mut id: u_int) -> *mut window {
                              rbe_parent: 0 as *mut window,
                              rbe_color: 0,},};
     w.id = id;
-    return windows_RB_FIND(&mut windows as *mut windows,
+    return windows_RB_FIND(&mut windows_static as *mut windows,
                            &mut w as *mut window);
 }
 #[no_mangle]
@@ -4744,7 +4749,7 @@ pub unsafe extern "C" fn window_create(mut sx: u_int, mut sy: u_int)
     let fresh9 = next_window_id;
     next_window_id = next_window_id.wrapping_add(1);
     (*w).id = fresh9;
-    windows_RB_INSERT(&mut windows as *mut windows, w);
+    windows_RB_INSERT(&mut windows_static as *mut windows, w);
     window_update_activity(w);
     return w;
 }

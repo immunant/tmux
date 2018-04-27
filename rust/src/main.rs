@@ -44,7 +44,8 @@ mod window;
 mod xmalloc;
 
 use cfg::set_cfg_file;
-use client::{client_main, clients, cmdq_item};
+use client::{client_main, clients};
+use cmd_queue::{global_queue, cmdq_item};
 use compat::getprogname::getprogname;
 use compat::fdforkpty::getptmfd;
 use environ::{environ_create, environ_put};
@@ -1414,6 +1415,9 @@ unsafe extern "C" fn checkshell(mut shell: *const libc::c_char)
 }
 unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char)
  -> libc::c_int {
+    // Initialize self referential global statics when starting
+    global_queue.tqh_last = &global_queue.tqh_first as *const *mut cmdq_item as *mut *mut cmdq_item;
+
     let mut current_block: u64;
     let mut path: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut label: *mut libc::c_char = 0 as *mut libc::c_char;

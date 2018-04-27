@@ -5,7 +5,7 @@ use compat::closefrom::closefrom;
 use compat::strlcpy::strlcpy;
 use common::timeval;
 use cmd::{cmd, cmd_pack_argv};
-use cmd_queue::{cmdq_shared, cmdq_list};
+use cmd_queue::{cmdq_shared, cmdq_list, cmdq_item};
 use cmd_list::{unnamed_6 as unnamed_10, cmd_list, cmd_list_free, cmd_list_parse};
 use environ::{environ, environ_free};
 use options::{self, options_free, options_table_entry};
@@ -820,27 +820,6 @@ pub const CLIENT_EXIT_DETACHED: unnamed_11 = 1;
 pub type bufferevent_event_cb =
     Option<unsafe extern "C" fn(_: *mut bufferevent, _: libc::c_short,
                                 _: *mut libc::c_void) -> ()>;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmdq_item {
-    pub name: *const libc::c_char,
-    pub queue: *mut cmdq_list,
-    pub next: *mut cmdq_item,
-    pub client: *mut client,
-    pub type_0: cmdq_type,
-    pub group: u_int,
-    pub number: u_int,
-    pub time: time_t,
-    pub flags: libc::c_int,
-    pub shared: *mut cmdq_shared,
-    pub source: cmd_find_state,
-    pub target: cmd_find_state,
-    pub cmdlist: *mut cmd_list,
-    pub cmd: *mut cmd,
-    pub cb: cmdq_cb,
-    pub data: *mut libc::c_void,
-    pub entry: unnamed_22,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct args_tree {

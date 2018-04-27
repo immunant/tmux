@@ -1142,15 +1142,23 @@ pub unsafe extern "C" fn cmdq_append(mut c: *mut client,
     };
 }
 unsafe extern "C" fn cmdq_get(mut c: *mut client) -> *mut cmdq_list {
-    if c == 0 as *mut libc::c_void as *mut client {
+    if c.is_null() {
         return &mut global_queue as *mut cmdq_list
     } else { return &mut (*c).queue as *mut cmdq_list };
 }
-static mut global_queue: cmdq_list =
+// Original:
+// static mut global_queue: cmdq_list =
+//     unsafe {
+//         cmdq_list{
+//             tqh_first: 0 as *const cmdq_item as *mut cmdq_item,
+//             tqh_last: &global_queue.tqh_first as *const *mut cmdq_item as *mut *mut cmdq_item,
+//         }
+//     };
+pub static mut global_queue: cmdq_list =
     unsafe {
         cmdq_list{
             tqh_first: 0 as *const cmdq_item as *mut cmdq_item,
-            tqh_last: &global_queue.tqh_first as *const *mut cmdq_item as *mut *mut cmdq_item,
+            tqh_last: 0 as *const *mut cmdq_item as *mut *mut cmdq_item, // Initializing in main
         }
     };
 #[no_mangle]

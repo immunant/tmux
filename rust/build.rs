@@ -23,4 +23,5 @@ fn main() {
         .compile("variadic");
 
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
+    println!("cargo:rustc-link-lib=static=variadic");
 }

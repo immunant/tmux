@@ -1,6 +1,8 @@
 extern crate libc;
 
-use cmd::{args, cmd};
+use arguments::{args, args_free};
+use cmd::{cmd, cmd_parse, cmd_print, cmd_free_argv, cmd_copy_argv};
+use xmalloc::{xrealloc, xcalloc};
 
 extern "C" {
     pub type tmuxproc;
@@ -56,10 +58,6 @@ extern "C" {
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
     #[no_mangle]
-    fn xcalloc(_: size_t, _: size_t) -> *mut libc::c_void;
-    #[no_mangle]
-    fn xrealloc(_: *mut libc::c_void, _: size_t) -> *mut libc::c_void;
-    #[no_mangle]
     static mut environ: *mut *mut libc::c_char;
     #[no_mangle]
     static mut global_hooks: *mut hooks;
@@ -87,23 +85,6 @@ extern "C" {
     static mut all_jobs: joblist;
     #[no_mangle]
     static mut tty_terms: tty_terms;
-    #[no_mangle]
-    fn args_free(_: *mut args) -> ();
-    #[no_mangle]
-    fn cmd_copy_argv(_: libc::c_int, _: *mut *mut libc::c_char)
-     -> *mut *mut libc::c_char;
-    #[no_mangle]
-    fn cmd_free_argv(_: libc::c_int, _: *mut *mut libc::c_char) -> ();
-    #[no_mangle]
-    fn cmd_parse(_: libc::c_int, _: *mut *mut libc::c_char,
-                 _: *const libc::c_char, _: u_int, _: *mut *mut libc::c_char)
-     -> *mut cmd;
-    #[no_mangle]
-    fn cmd_print(_: *mut cmd) -> *mut libc::c_char;
-    #[no_mangle]
-    static mut cmd_table: [*const cmd_entry; 0];
-    #[no_mangle]
-    static mut key_tables: key_tables;
     #[no_mangle]
     static mut server_proc: *mut tmuxproc;
     #[no_mangle]

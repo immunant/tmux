@@ -119,8 +119,6 @@ extern "C" {
     fn colour_split_rgb(_: libc::c_int, _: *mut u_char, _: *mut u_char,
                         _: *mut u_char) -> ();
     #[no_mangle]
-    static grid_default_cell: grid_cell;
-    #[no_mangle]
     fn utf8_set(_: *mut utf8_data, _: u_char) -> ();
     #[no_mangle]
     fn log_debug(_: *const libc::c_char, ...) -> ();
@@ -147,6 +145,19 @@ extern "C" {
     #[no_mangle]
     static mut session_groups: session_groups;
 }
+#[no_mangle]
+pub static mut grid_default_cell: grid_cell =
+    unsafe {
+        grid_cell{flags: 0i32 as u_char,
+                  attr: 0i32 as u_short,
+                  fg: 8i32,
+                  bg: 8i32,
+                  data:
+                      utf8_data{data: [32 as u_char, 0, 0, 0, 0, 0, 0, 0, 0],
+                                have: 0i32 as u_char,
+                                size: 1i32 as u_char,
+                                width: 1i32 as u_char,},}
+    };
 pub const JOB_CLOSED: unnamed_37 = 2;
 pub type __pid_t = libc::c_int;
 #[derive ( Copy , Clone )]

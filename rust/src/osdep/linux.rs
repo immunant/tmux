@@ -1,11 +1,6 @@
 extern crate libc;
 
-#[link(name = "event")]
-extern "C" {
-    pub type event_base;
-    #[no_mangle]
-    fn event_init() -> *mut event_base;
-}
+use proc_::{event_base, event_init};
 
 extern "C" {
     pub type args_entry;

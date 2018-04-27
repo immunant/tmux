@@ -8,6 +8,8 @@
 #include "tmux.h"
 // #include "variadic.h"
 
+// extern int xvasprintf(char **, const char *, va_list) __attribute__((__nonnull__ (2)));
+
 extern char **cfg_causes;
 extern u_int cfg_ncauses;
 // format.c:

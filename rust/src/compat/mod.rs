@@ -13,4 +13,6 @@ pub mod imsg_buffer;
 #[allow(private_no_mangle_fns)]
 pub mod reallocarray;
 #[allow(private_no_mangle_fns)]
+pub mod recallocarray;
+#[allow(private_no_mangle_fns)]
 pub mod strlcpy;

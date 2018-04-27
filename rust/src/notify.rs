@@ -1,17 +1,9 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use client::{client, clients};
+use session::session;
+use window::window;
+
 extern "C" {
     pub type screen_titles;
     pub type format_job_tree;
@@ -296,12 +288,6 @@ pub union unnamed_4 {
 pub type __u_char = libc::c_uchar;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct clients {
-    pub tqh_first: *mut client,
-    pub tqh_last: *mut *mut client,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct unnamed_5 {
     pub tqe_next: *mut layout_cell,
     pub tqe_prev: *mut *mut layout_cell,
@@ -314,34 +300,6 @@ pub type cmdq_cb =
 pub struct layout_cells {
     pub tqh_first: *mut layout_cell,
     pub tqh_last: *mut *mut layout_cell,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub name_event: event,
-    pub name_time: timeval,
-    pub alerts_timer: event,
-    pub activity_time: timeval,
-    pub active: *mut window_pane,
-    pub last: *mut window_pane,
-    pub panes: window_panes,
-    pub lastlayout: libc::c_int,
-    pub layout_root: *mut layout_cell,
-    pub saved_layout_root: *mut layout_cell,
-    pub old_layout: *mut libc::c_char,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub flags: libc::c_int,
-    pub alerts_queued: libc::c_int,
-    pub alerts_entry: unnamed_19,
-    pub options: *mut options,
-    pub style: grid_cell,
-    pub active_style: grid_cell,
-    pub references: u_int,
-    pub winlinks: unnamed_3,
-    pub entry: unnamed_27,
 }
 pub type cmd_find_type = libc::c_uint;
 pub type bufferevent_event_cb =
@@ -561,67 +519,6 @@ pub union unnamed_11 {
 pub type job_free_cb =
     Option<unsafe extern "C" fn(_: *mut libc::c_void) -> ()>;
 pub const CMD_FIND_SESSION: cmd_find_type = 2;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct client {
-    pub name: *const libc::c_char,
-    pub peer: *mut tmuxpeer,
-    pub queue: cmdq_list,
-    pub pid: pid_t,
-    pub fd: libc::c_int,
-    pub event: event,
-    pub retval: libc::c_int,
-    pub creation_time: timeval,
-    pub activity_time: timeval,
-    pub environ: *mut environ,
-    pub jobs: *mut format_job_tree,
-    pub title: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub term: *mut libc::c_char,
-    pub ttyname: *mut libc::c_char,
-    pub tty: tty,
-    pub written: size_t,
-    pub discarded: size_t,
-    pub redraw: size_t,
-    pub stdin_callback: Option<unsafe extern "C" fn(_: *mut client,
-                                                    _: libc::c_int,
-                                                    _: *mut libc::c_void)
-                                   -> ()>,
-    pub stdin_callback_data: *mut libc::c_void,
-    pub stdin_data: *mut evbuffer,
-    pub stdin_closed: libc::c_int,
-    pub stdout_data: *mut evbuffer,
-    pub stderr_data: *mut evbuffer,
-    pub repeat_timer: event,
-    pub click_timer: event,
-    pub click_button: u_int,
-    pub status: status_line,
-    pub flags: libc::c_int,
-    pub keytable: *mut key_table,
-    pub identify_timer: event,
-    pub identify_callback: Option<unsafe extern "C" fn(_: *mut client,
-                                                       _: *mut window_pane)
-                                      -> ()>,
-    pub identify_callback_data: *mut libc::c_void,
-    pub message_string: *mut libc::c_char,
-    pub message_timer: event,
-    pub message_next: u_int,
-    pub message_log: unnamed_26,
-    pub prompt_string: *mut libc::c_char,
-    pub prompt_buffer: *mut utf8_data,
-    pub prompt_index: size_t,
-    pub prompt_inputcb: prompt_input_cb,
-    pub prompt_freecb: prompt_free_cb,
-    pub prompt_data: *mut libc::c_void,
-    pub prompt_hindex: u_int,
-    pub prompt_mode: unnamed_23,
-    pub prompt_flags: libc::c_int,
-    pub session: *mut session,
-    pub last_session: *mut session,
-    pub wlmouse: libc::c_int,
-    pub references: libc::c_int,
-    pub entry: unnamed_33,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct in6_addr {
@@ -1140,33 +1037,6 @@ pub struct bufferevent {
 }
 pub const TTY_VT100: unnamed_36 = 0;
 pub const TTY_VT220: unnamed_36 = 3;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub creation_time: timeval,
-    pub last_attached_time: timeval,
-    pub activity_time: timeval,
-    pub last_activity_time: timeval,
-    pub lock_timer: event,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub curw: *mut winlink,
-    pub lastw: winlink_stack,
-    pub windows: winlinks,
-    pub statusat: libc::c_int,
-    pub hooks: *mut hooks,
-    pub options: *mut options,
-    pub flags: libc::c_int,
-    pub attached: u_int,
-    pub tio: *mut termios,
-    pub environ: *mut environ,
-    pub references: libc::c_int,
-    pub gentry: unnamed_16,
-    pub entry: unnamed,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct cmd_list {

@@ -61,7 +61,7 @@ extern "C" {
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
-    fn msgbuf_write(_: *mut msgbuf) -> libc::c_int; // FIXME: not being translated
+    fn msgbuf_write(_: *mut msgbuf) -> libc::c_int; // Miguel is looking into this
     #[no_mangle]
     fn getdtablecount() -> libc::c_int;
     #[no_mangle]
@@ -75,7 +75,9 @@ extern "C" {
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
 }
-pub type __u_char = libc::c_uchar;
+pub type u_char = __u_char;
+pub type _IO_lock_t = ();
+pub type socklen_t = __socklen_t;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct msghdr {
@@ -87,57 +89,6 @@ pub struct msghdr {
     pub msg_controllen: size_t,
     pub msg_flags: libc::c_int,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct ibuf_read {
-    pub buf: [u_char; 65535],
-    pub rptr: *mut u_char,
-    pub wpos: size_t,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed {
-    pub tqh_first: *mut ibuf,
-    pub tqh_last: *mut *mut ibuf,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct _IO_marker {
-    pub _next: *mut _IO_marker,
-    pub _sbuf: *mut _IO_FILE,
-    pub _pos: libc::c_int,
-}
-pub type pid_t = __pid_t;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_0 {
-    pub tqe_next: *mut ibuf,
-    pub tqe_prev: *mut *mut ibuf,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct imsgbuf {
-    pub fds: unnamed_3,
-    pub r: ibuf_read,
-    pub w: msgbuf,
-    pub fd: libc::c_int,
-    pub pid: pid_t,
-}
-pub const SCM_RIGHTS: unnamed_1 = 1;
-pub type __off_t = libc::c_long;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct imsg_hdr {
-    pub type_0: uint32_t,
-    pub len: uint16_t,
-    pub flags: uint16_t,
-    pub peerid: uint32_t,
-    pub pid: uint32_t,
-}
-pub type u_char = __u_char;
-pub type unnamed_1 = libc::c_uint;
-pub type __ssize_t = libc::c_long;
-pub type socklen_t = __socklen_t;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_FILE {
@@ -171,13 +122,15 @@ pub struct _IO_FILE {
     pub _mode: libc::c_int,
     pub _unused2: [libc::c_char; 20],
 }
-pub type size_t = libc::c_ulong;
+pub type __pid_t = libc::c_int;
+pub type __socklen_t = libc::c_uint;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct imsg_fd {
-    pub entry: unnamed_4,
-    pub fd: libc::c_int,
+pub struct iovec {
+    pub iov_base: *mut libc::c_void,
+    pub iov_len: size_t,
 }
+pub type uint16_t = libc::c_ushort;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct imsg {
@@ -187,11 +140,74 @@ pub struct imsg {
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct iovec {
-    pub iov_base: *mut libc::c_void,
-    pub iov_len: size_t,
+pub struct unnamed {
+    pub tqh_first: *mut ibuf,
+    pub tqh_last: *mut *mut ibuf,
 }
-pub type uint32_t = libc::c_uint;
+pub type __off_t = libc::c_long;
+pub type size_t = libc::c_ulong;
+pub type unnamed_0 = libc::c_uint;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct _IO_marker {
+    pub _next: *mut _IO_marker,
+    pub _sbuf: *mut _IO_FILE,
+    pub _pos: libc::c_int,
+}
+pub type __off64_t = libc::c_long;
+pub type pid_t = __pid_t;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct imsgbuf {
+    pub fds: unnamed_4,
+    pub r: ibuf_read,
+    pub w: msgbuf,
+    pub fd: libc::c_int,
+    pub pid: pid_t,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub union unnamed_1 {
+    hdr: cmsghdr,
+    buf: [libc::c_char; 24],
+}
+pub type ssize_t = __ssize_t;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_2 {
+    pub tqe_next: *mut imsg_fd,
+    pub tqe_prev: *mut *mut imsg_fd,
+}
+pub type __u_char = libc::c_uchar;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_3 {
+    pub tqe_next: *mut ibuf,
+    pub tqe_prev: *mut *mut ibuf,
+}
+pub const SCM_RIGHTS: unnamed_0 = 1;
+pub type __ssize_t = libc::c_long;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct imsg_fd {
+    pub entry: unnamed_2,
+    pub fd: libc::c_int,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_4 {
+    pub tqh_first: *mut imsg_fd,
+    pub tqh_last: *mut *mut imsg_fd,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct imsg_hdr {
+    pub type_0: uint32_t,
+    pub len: uint16_t,
+    pub flags: uint16_t,
+    pub peerid: uint32_t,
+    pub pid: uint32_t,
+}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct cmsghdr {
@@ -202,28 +218,12 @@ pub struct cmsghdr {
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub union unnamed_2 {
-    hdr: cmsghdr,
-    buf: [libc::c_char; 24],
+pub struct ibuf_read {
+    pub buf: [u_char; 65535],
+    pub rptr: *mut u_char,
+    pub wpos: size_t,
 }
-pub type ssize_t = __ssize_t;
-pub type uint16_t = libc::c_ushort;
-pub type __off64_t = libc::c_long;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_3 {
-    pub tqh_first: *mut imsg_fd,
-    pub tqh_last: *mut *mut imsg_fd,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_4 {
-    pub tqe_next: *mut imsg_fd,
-    pub tqe_prev: *mut *mut imsg_fd,
-}
-pub type __socklen_t = libc::c_uint;
-pub type _IO_lock_t = ();
-pub type __pid_t = libc::c_int;
+pub type uint32_t = libc::c_uint;
 #[no_mangle]
 pub unsafe extern "C" fn imsg_init(mut ibuf: *mut imsgbuf,
                                    mut fd: libc::c_int) -> () {
@@ -235,13 +235,195 @@ pub unsafe extern "C" fn imsg_init(mut ibuf: *mut imsgbuf,
     (*ibuf).pid = getpid();
     loop  {
         let ref mut fresh0 =
-            (*(&mut (*ibuf).fds as *mut unnamed_3)).tqh_first;
+            (*(&mut (*ibuf).fds as *mut unnamed_4)).tqh_first;
         *fresh0 = 0 as *mut imsg_fd;
-        let ref mut fresh1 = (*(&mut (*ibuf).fds as *mut unnamed_3)).tqh_last;
+        let ref mut fresh1 = (*(&mut (*ibuf).fds as *mut unnamed_4)).tqh_last;
         *fresh1 =
-            &mut (*(&mut (*ibuf).fds as *mut unnamed_3)).tqh_first as
+            &mut (*(&mut (*ibuf).fds as *mut unnamed_4)).tqh_first as
                 *mut *mut imsg_fd;
         if !(0 != 0i32) { break ; }
+    };
+}
+#[no_mangle]
+pub unsafe extern "C" fn imsg_read(mut ibuf: *mut imsgbuf) -> ssize_t {
+    let mut current_block: u64;
+    let mut msg: msghdr =
+        msghdr{msg_name: 0 as *mut libc::c_void,
+               msg_namelen: 0,
+               msg_iov: 0 as *mut iovec,
+               msg_iovlen: 0,
+               msg_control: 0 as *mut libc::c_void,
+               msg_controllen: 0,
+               msg_flags: 0,};
+    let mut cmsg: *mut cmsghdr = 0 as *mut cmsghdr;
+    let mut cmsgbuf: unnamed_1 =
+        unnamed_1{hdr:
+                      cmsghdr{cmsg_len: 0,
+                              cmsg_level: 0,
+                              cmsg_type: 0,
+                              __cmsg_data: [],},};
+    let mut iov: iovec = iovec{iov_base: 0 as *mut libc::c_void, iov_len: 0,};
+    let mut n: ssize_t = 1i32.wrapping_neg() as ssize_t;
+    let mut fd: libc::c_int = 0;
+    let mut ifd: *mut imsg_fd = 0 as *mut imsg_fd;
+    memset(&mut msg as *mut msghdr as *mut libc::c_void, 0i32,
+           ::std::mem::size_of::<msghdr>() as libc::c_ulong);
+    memset(&mut cmsgbuf as *mut unnamed_1 as *mut libc::c_void, 0i32,
+           ::std::mem::size_of::<unnamed_1>() as libc::c_ulong);
+    iov.iov_base =
+        (*ibuf).r.buf.as_mut_ptr().offset((*ibuf).r.wpos as isize) as
+            *mut libc::c_void;
+    iov.iov_len =
+        (::std::mem::size_of::<[u_char; 65535]>() as
+             libc::c_ulong).wrapping_sub((*ibuf).r.wpos);
+    msg.msg_iov = &mut iov as *mut iovec;
+    msg.msg_iovlen = 1i32 as size_t;
+    msg.msg_control =
+        &mut cmsgbuf.buf as *mut [libc::c_char; 24] as *mut libc::c_void;
+    msg.msg_controllen =
+        ::std::mem::size_of::<[libc::c_char; 24]>() as libc::c_ulong;
+    ifd =
+        calloc(1i32 as libc::c_ulong,
+               ::std::mem::size_of::<imsg_fd>() as libc::c_ulong) as
+            *mut imsg_fd;
+    if ifd == 0 as *mut libc::c_void as *mut imsg_fd {
+        return 1i32.wrapping_neg() as ssize_t
+    } else {
+        loop  {
+            if getdtablecount() + imsg_fd_overhead +
+                   ((::std::mem::size_of::<libc::c_int>() as
+                         libc::c_ulong).wrapping_add(::std::mem::size_of::<size_t>()
+                                                         as
+                                                         libc::c_ulong).wrapping_sub(1i32
+                                                                                         as
+                                                                                         libc::c_ulong)
+                        &
+                        !(::std::mem::size_of::<size_t>() as
+                              libc::c_ulong).wrapping_sub(1i32 as
+                                                              libc::c_ulong)).wrapping_add((::std::mem::size_of::<cmsghdr>()
+                                                                                                as
+                                                                                                libc::c_ulong).wrapping_add(::std::mem::size_of::<size_t>()
+                                                                                                                                as
+                                                                                                                                libc::c_ulong).wrapping_sub(1i32
+                                                                                                                                                                as
+                                                                                                                                                                libc::c_ulong)
+                                                                                               &
+                                                                                               !(::std::mem::size_of::<size_t>()
+                                                                                                     as
+                                                                                                     libc::c_ulong).wrapping_sub(1i32
+                                                                                                                                     as
+                                                                                                                                     libc::c_ulong)).wrapping_sub(((0i32
+                                                                                                                                                                        as
+                                                                                                                                                                        libc::c_ulong).wrapping_add(::std::mem::size_of::<size_t>()
+                                                                                                                                                                                                        as
+                                                                                                                                                                                                        libc::c_ulong).wrapping_sub(1i32
+                                                                                                                                                                                                                                        as
+                                                                                                                                                                                                                                        libc::c_ulong)
+                                                                                                                                                                       &
+                                                                                                                                                                       !(::std::mem::size_of::<size_t>()
+                                                                                                                                                                             as
+                                                                                                                                                                             libc::c_ulong).wrapping_sub(1i32
+                                                                                                                                                                                                             as
+                                                                                                                                                                                                             libc::c_ulong)).wrapping_add((::std::mem::size_of::<cmsghdr>()
+                                                                                                                                                                                                                                               as
+                                                                                                                                                                                                                                               libc::c_ulong).wrapping_add(::std::mem::size_of::<size_t>()
+                                                                                                                                                                                                                                                                               as
+                                                                                                                                                                                                                                                                               libc::c_ulong).wrapping_sub(1i32
+                                                                                                                                                                                                                                                                                                               as
+                                                                                                                                                                                                                                                                                                               libc::c_ulong)
+                                                                                                                                                                                                                                              &
+                                                                                                                                                                                                                                              !(::std::mem::size_of::<size_t>()
+                                                                                                                                                                                                                                                    as
+                                                                                                                                                                                                                                                    libc::c_ulong).wrapping_sub(1i32
+                                                                                                                                                                                                                                                                                    as
+                                                                                                                                                                                                                                                                                    libc::c_ulong))).wrapping_div(::std::mem::size_of::<libc::c_int>()
+                                                                                                                                                                                                                                                                                                                      as
+                                                                                                                                                                                                                                                                                                                      libc::c_ulong)
+                       as libc::c_int >= getdtablesize() {
+                *__errno_location() = 11i32;
+                free(ifd as *mut libc::c_void);
+                return 1i32.wrapping_neg() as ssize_t
+            } else {
+                n = recvmsg((*ibuf).fd, &mut msg as *mut msghdr, 0i32);
+                if n == 1i32.wrapping_neg() as libc::c_long {
+                    if !(*__errno_location() == 4i32) {
+                        current_block = 12468031930487737866;
+                        break ;
+                    }
+                } else {
+                    (*ibuf).r.wpos =
+                        ((*ibuf).r.wpos as
+                             libc::c_ulong).wrapping_add(n as libc::c_ulong)
+                            as size_t as size_t;
+                    cmsg =
+                        if (*(&mut msg as *mut msghdr)).msg_controllen >=
+                               ::std::mem::size_of::<cmsghdr>() as
+                                   libc::c_ulong {
+                            (*(&mut msg as *mut msghdr)).msg_control as
+                                *mut cmsghdr
+                        } else { 0 as *mut cmsghdr };
+                    current_block = 7351195479953500246;
+                    break ;
+                }
+            }
+        }
+        loop  {
+            match current_block {
+                7351195479953500246 => {
+                    if !(cmsg != 0 as *mut libc::c_void as *mut cmsghdr) {
+                        current_block = 12468031930487737866;
+                        continue ;
+                    }
+                    if (*cmsg).cmsg_level == 1i32 &&
+                           (*cmsg).cmsg_type == SCM_RIGHTS as libc::c_int {
+                        let mut i: libc::c_int = 0;
+                        let mut j: libc::c_int = 0;
+                        j =
+                            (((*cmsg).__cmsg_data.as_mut_ptr() as
+                                  *mut libc::c_char).offset_to((cmsg as
+                                                                    *mut libc::c_char).offset((*cmsg).cmsg_len
+                                                                                                  as
+                                                                                                  isize)).expect("bad offset_to")
+                                 as libc::c_long as
+                                 libc::c_ulong).wrapping_div(::std::mem::size_of::<libc::c_int>()
+                                                                 as
+                                                                 libc::c_ulong)
+                                as libc::c_int;
+                        i = 0i32;
+                        while i < j {
+                            fd =
+                                *((*cmsg).__cmsg_data.as_mut_ptr() as
+                                      *mut libc::c_int).offset(i as isize);
+                            if ifd != 0 as *mut libc::c_void as *mut imsg_fd {
+                                (*ifd).fd = fd;
+                                loop  {
+                                    (*ifd).entry.tqe_next = 0 as *mut imsg_fd;
+                                    (*ifd).entry.tqe_prev =
+                                        (*(&mut (*ibuf).fds as
+                                               *mut unnamed_4)).tqh_last;
+                                    let ref mut fresh2 =
+                                        *(*(&mut (*ibuf).fds as
+                                                *mut unnamed_4)).tqh_last;
+                                    *fresh2 = ifd;
+                                    let ref mut fresh3 =
+                                        (*(&mut (*ibuf).fds as
+                                               *mut unnamed_4)).tqh_last;
+                                    *fresh3 =
+                                        &mut (*ifd).entry.tqe_next as
+                                            *mut *mut imsg_fd;
+                                    if !(0 != 0i32) { break ; }
+                                }
+                                ifd = 0 as *mut imsg_fd
+                            } else { close(fd); }
+                            i += 1
+                        }
+                    }
+                    cmsg = __cmsg_nxthdr(&mut msg as *mut msghdr, cmsg);
+                    current_block = 7351195479953500246;
+                }
+                _ => { free(ifd as *mut libc::c_void); return n }
+            }
+        }
     };
 }
 #[no_mangle]
@@ -306,7 +488,7 @@ pub unsafe extern "C" fn imsg_get(mut ibuf: *mut imsgbuf, mut imsg: *mut imsg)
 unsafe extern "C" fn imsg_get_fd(mut ibuf: *mut imsgbuf) -> libc::c_int {
     let mut fd: libc::c_int = 0;
     let mut ifd: *mut imsg_fd = 0 as *mut imsg_fd;
-    ifd = (*(&mut (*ibuf).fds as *mut unnamed_3)).tqh_first;
+    ifd = (*(&mut (*ibuf).fds as *mut unnamed_4)).tqh_first;
     if ifd == 0 as *mut libc::c_void as *mut imsg_fd {
         return 1i32.wrapping_neg()
     } else {
@@ -317,9 +499,9 @@ unsafe extern "C" fn imsg_get_fd(mut ibuf: *mut imsgbuf) -> libc::c_int {
                 (*(*ifd).entry.tqe_next).entry.tqe_prev =
                     (*ifd).entry.tqe_prev
             } else {
-                let ref mut fresh2 =
-                    (*(&mut (*ibuf).fds as *mut unnamed_3)).tqh_last;
-                *fresh2 = (*ifd).entry.tqe_prev
+                let ref mut fresh4 =
+                    (*(&mut (*ibuf).fds as *mut unnamed_4)).tqh_last;
+                *fresh4 = (*ifd).entry.tqe_prev
             }
             *(*ifd).entry.tqe_prev = (*ifd).entry.tqe_next;
             if !(0 != 0i32) { break ; }

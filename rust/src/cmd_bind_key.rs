@@ -1,17 +1,9 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use arguments::{args, args_has, args_get};
+use cmd::{cmd, unnamed_36 as unnamed_24, cmd_entry, cmd_entry_flag};
+use cmd_queue::{cmdq_item};
+
 extern "C" {
     pub type tty_code;
     pub type environ;
@@ -88,10 +80,6 @@ extern "C" {
     static mut all_jobs: joblist;
     #[no_mangle]
     static mut tty_terms: tty_terms;
-    #[no_mangle]
-    fn args_has(_: *mut args, _: u_char) -> libc::c_int;
-    #[no_mangle]
-    fn args_get(_: *mut args, _: u_char) -> *const libc::c_char;
     #[no_mangle]
     static mut cmd_table: [*const cmd_entry; 0];
     #[no_mangle]
@@ -241,16 +229,6 @@ pub struct unnamed_3 {
 pub type unnamed_4 = libc::c_uint;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct cmd {
-    pub entry: *const cmd_entry,
-    pub args: *mut args,
-    pub file: *mut libc::c_char,
-    pub line: u_int,
-    pub flags: libc::c_int,
-    pub qentry: unnamed_26,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct mouse_event {
     pub valid: libc::c_int,
     pub key: key_code,
@@ -292,13 +270,6 @@ pub struct unnamed_6 {
     pub rbe_right: *mut session_group,
     pub rbe_parent: *mut session_group,
     pub rbe_color: libc::c_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_entry_flag {
-    pub flag: libc::c_char,
-    pub type_0: cmd_find_type,
-    pub flags: libc::c_int,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -709,27 +680,6 @@ pub struct unnamed_23 {
     pub tqe_next: *mut client,
     pub tqe_prev: *mut *mut client,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmdq_item {
-    pub name: *const libc::c_char,
-    pub queue: *mut cmdq_list,
-    pub next: *mut cmdq_item,
-    pub client: *mut client,
-    pub type_0: cmdq_type,
-    pub group: u_int,
-    pub number: u_int,
-    pub time: time_t,
-    pub flags: libc::c_int,
-    pub shared: *mut cmdq_shared,
-    pub source: cmd_find_state,
-    pub target: cmd_find_state,
-    pub cmdlist: *mut cmd_list,
-    pub cmd: *mut cmd,
-    pub cb: cmdq_cb,
-    pub data: *mut libc::c_void,
-    pub entry: unnamed_17,
-}
 pub type __time_t = libc::c_long;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -750,13 +700,6 @@ pub struct tty_key {
     pub left: *mut tty_key,
     pub right: *mut tty_key,
     pub next: *mut tty_key,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_24 {
-    pub template: *const libc::c_char,
-    pub lower: libc::c_int,
-    pub upper: libc::c_int,
 }
 pub const JOB_CLOSED: unnamed_29 = 2;
 #[derive ( Copy , Clone )]
@@ -828,19 +771,6 @@ pub struct event_watermark {
     pub high: size_t,
 }
 pub const CMD_RETURN_WAIT: cmd_retval = 1;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_entry {
-    pub name: *const libc::c_char,
-    pub alias: *const libc::c_char,
-    pub args: unnamed_24,
-    pub usage: *const libc::c_char,
-    pub source: cmd_entry_flag,
-    pub target: cmd_entry_flag,
-    pub flags: libc::c_int,
-    pub exec: Option<unsafe extern "C" fn(_: *mut cmd, _: *mut cmdq_item)
-                         -> cmd_retval>,
-}
 pub type bitstr_t = libc::c_uchar;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -1139,13 +1069,6 @@ pub type prompt_input_cb =
                                 _: *const libc::c_char, _: libc::c_int)
                -> libc::c_int>;
 pub type time_t = __time_t;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct args {
-    pub tree: args_tree,
-    pub argc: libc::c_int,
-    pub argv: *mut *mut libc::c_char,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct screen_sel {

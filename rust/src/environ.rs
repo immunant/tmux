@@ -1,7 +1,9 @@
 extern crate libc;
+
+use options::{options, options_get, options_array_size, options_array_get, options_get_string, options_entry};
+
 extern "C" {
     pub type screen_titles;
-    pub type options_entry;
     pub type input_ctx;
     pub type event_base;
     pub type tmuxpeer;
@@ -11,7 +13,6 @@ extern "C" {
     pub type evbuffer;
     pub type tty_code;
     pub type args_entry;
-    pub type options;
     pub type hooks;
     pub type tmuxproc;
     pub type format_tree;
@@ -97,18 +98,6 @@ extern "C" {
     static mut ptm_fd: libc::c_int;
     #[no_mangle]
     static mut cfg_finished: libc::c_int;
-    #[no_mangle]
-    fn options_get(_: *mut options, _: *const libc::c_char)
-     -> *mut options_entry;
-    #[no_mangle]
-    fn options_array_get(_: *mut options_entry, _: u_int)
-     -> *const libc::c_char;
-    #[no_mangle]
-    fn options_array_size(_: *mut options_entry, _: *mut u_int)
-     -> libc::c_int;
-    #[no_mangle]
-    fn options_get_string(_: *mut options, _: *const libc::c_char)
-     -> *const libc::c_char;
     #[no_mangle]
     static options_table: [options_table_entry; 0];
     #[no_mangle]

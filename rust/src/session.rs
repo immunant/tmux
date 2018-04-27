@@ -1,29 +1,22 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use common::{termios, timeval};
+use environ::environ;
+use options::options;
+use notify::{notify_session, notify_session_window};
+use hooks::hooks;
+use proc_::{unnamed_13 as unnamed_2, unnamed_14 as unnamed_21, unnamed_16 as unnamed_32, unnamed_40 as unnamed_30, unnamed as unnamed_24, unnamed_32 as unnamed_27, unnamed_43 as unnamed_38};
+use proc_::{event_initialized, event_set, event_once, event_add, event_del, event, event_base};
+use window::{window, unnamed_11 as unnamed_34, windows, window_pane, window_pane_tree, window_mode, winlink, winlink_stack, winlinks, winlinks_RB_NEXT, winlinks_RB_MINMAX, winlink_find_by_index, winlink_find_by_window, winlink_find_by_window_id, winlink_add,  winlink_set_window, winlink_remove, winlink_next, winlink_previous, winlink_stack_push, winlink_stack_remove, window_update_activity, window_create_spawn, winlink_clear_flags};
+use xmalloc::{xcalloc, xmalloc};
+
 extern "C" {
-    pub type options;
-    pub type tmuxproc;
     pub type args_entry;
     pub type tmuxpeer;
     pub type bufferevent_ops;
-    pub type event_base;
     pub type _IO_FILE_plus;
-    pub type environ;
     pub type tty_code;
     pub type format_tree;
-    pub type hooks;
     pub type screen_titles;
     pub type evbuffer;
     pub type input_ctx;
@@ -84,27 +77,6 @@ extern "C" {
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
-    fn event_add(ev: *mut event, timeout: *const timeval) -> libc::c_int;
-    #[no_mangle]
-    fn event_del(_: *mut event) -> libc::c_int;
-    #[no_mangle]
-    fn event_initialized(ev: *const event) -> libc::c_int;
-    #[no_mangle]
-    fn event_once(_: libc::c_int, _: libc::c_short,
-                  _:
-                      Option<unsafe extern "C" fn(_: libc::c_int,
-                                                  _: libc::c_short,
-                                                  _: *mut libc::c_void)
-                                 -> ()>, _: *mut libc::c_void,
-                  _: *const timeval) -> libc::c_int;
-    #[no_mangle]
-    fn event_set(_: *mut event, _: libc::c_int, _: libc::c_short,
-                 _:
-                     Option<unsafe extern "C" fn(_: libc::c_int,
-                                                 _: libc::c_short,
-                                                 _: *mut libc::c_void) -> ()>,
-                 _: *mut libc::c_void) -> ();
-    #[no_mangle]
     fn strtonum(_: *const libc::c_char, _: libc::c_longlong,
                 _: libc::c_longlong, _: *mut *const libc::c_char)
      -> libc::c_longlong;
@@ -118,10 +90,6 @@ extern "C" {
     static mut BSDoptreset: libc::c_int;
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
-    #[no_mangle]
-    fn xmalloc(_: size_t) -> *mut libc::c_void;
-    #[no_mangle]
-    fn xcalloc(_: size_t, _: size_t) -> *mut libc::c_void;
     #[no_mangle]
     fn xstrdup(_: *const libc::c_char) -> *mut libc::c_char;
     #[no_mangle]
@@ -156,11 +124,6 @@ extern "C" {
     #[no_mangle]
     fn hooks_free(_: *mut hooks) -> ();
     #[no_mangle]
-    fn notify_session(_: *const libc::c_char, _: *mut session) -> ();
-    #[no_mangle]
-    fn notify_session_window(_: *const libc::c_char, _: *mut session,
-                             _: *mut window) -> ();
-    #[no_mangle]
     fn options_create(_: *mut options) -> *mut options;
     #[no_mangle]
     fn options_free(_: *mut options) -> ();
@@ -189,8 +152,6 @@ extern "C" {
     #[no_mangle]
     static mut key_tables: key_tables;
     #[no_mangle]
-    static mut server_proc: *mut tmuxproc;
-    #[no_mangle]
     static mut clients: clients;
     #[no_mangle]
     static mut marked_pane: cmd_find_state;
@@ -206,43 +167,6 @@ extern "C" {
     static mut windows: windows;
     #[no_mangle]
     static mut all_window_panes: window_pane_tree;
-    #[no_mangle]
-    fn winlinks_RB_NEXT(_: *mut winlink) -> *mut winlink;
-    #[no_mangle]
-    fn winlinks_RB_MINMAX(_: *mut winlinks, _: libc::c_int) -> *mut winlink;
-    #[no_mangle]
-    fn winlink_find_by_index(_: *mut winlinks, _: libc::c_int)
-     -> *mut winlink;
-    #[no_mangle]
-    fn winlink_find_by_window(_: *mut winlinks, _: *mut window)
-     -> *mut winlink;
-    #[no_mangle]
-    fn winlink_find_by_window_id(_: *mut winlinks, _: u_int) -> *mut winlink;
-    #[no_mangle]
-    fn winlink_add(_: *mut winlinks, _: libc::c_int) -> *mut winlink;
-    #[no_mangle]
-    fn winlink_set_window(_: *mut winlink, _: *mut window) -> ();
-    #[no_mangle]
-    fn winlink_remove(_: *mut winlinks, _: *mut winlink) -> ();
-    #[no_mangle]
-    fn winlink_next(_: *mut winlink) -> *mut winlink;
-    #[no_mangle]
-    fn winlink_previous(_: *mut winlink) -> *mut winlink;
-    #[no_mangle]
-    fn winlink_stack_push(_: *mut winlink_stack, _: *mut winlink) -> ();
-    #[no_mangle]
-    fn winlink_stack_remove(_: *mut winlink_stack, _: *mut winlink) -> ();
-    #[no_mangle]
-    fn window_update_activity(_: *mut window) -> ();
-    #[no_mangle]
-    fn window_create_spawn(_: *const libc::c_char, _: libc::c_int,
-                           _: *mut *mut libc::c_char, _: *const libc::c_char,
-                           _: *const libc::c_char, _: *const libc::c_char,
-                           _: *mut environ, _: *mut termios, _: u_int,
-                           _: u_int, _: u_int, _: *mut *mut libc::c_char)
-     -> *mut window;
-    #[no_mangle]
-    fn winlink_clear_flags(_: *mut winlink) -> ();
     #[no_mangle]
     static window_buffer_mode: window_mode;
     #[no_mangle]
@@ -338,12 +262,6 @@ pub type tcflag_t = libc::c_uint;
 pub struct key_tables {
     pub rbh_root: *mut key_table,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_2 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
 pub type cmd_find_type = libc::c_uint;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -411,12 +329,6 @@ pub struct status_line {
     pub status: screen,
     pub old_status: *mut screen,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct winlink_stack {
-    pub tqh_first: *mut winlink,
-    pub tqh_last: *mut *mut winlink,
-}
 pub type key_code = libc::c_ulonglong;
 pub const TTY_VT220: unnamed_28 = 3;
 #[derive ( Copy , Clone )]
@@ -449,57 +361,9 @@ pub union unnamed_5 {
 pub const OPTIONS_TABLE_KEY: options_table_type = 2;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct window {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub name_event: event,
-    pub name_time: timeval,
-    pub alerts_timer: event,
-    pub activity_time: timeval,
-    pub active: *mut window_pane,
-    pub last: *mut window_pane,
-    pub panes: window_panes,
-    pub lastlayout: libc::c_int,
-    pub layout_root: *mut layout_cell,
-    pub saved_layout_root: *mut layout_cell,
-    pub old_layout: *mut libc::c_char,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub flags: libc::c_int,
-    pub alerts_queued: libc::c_int,
-    pub alerts_entry: unnamed_33,
-    pub options: *mut options,
-    pub style: grid_cell,
-    pub active_style: grid_cell,
-    pub references: u_int,
-    pub winlinks: unnamed_34,
-    pub entry: unnamed_0,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct unnamed_6 {
     pub tqe_next: *mut session,
     pub tqe_prev: *mut *mut session,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct event {
-    pub ev_active_next: unnamed_30,
-    pub ev_next: unnamed_2,
-    pub ev_timeout_pos: unnamed_24,
-    pub ev_fd: libc::c_int,
-    pub ev_base: *mut event_base,
-    pub _ev: unnamed_21,
-    pub ev_events: libc::c_short,
-    pub ev_res: libc::c_short,
-    pub ev_flags: libc::c_short,
-    pub ev_pri: uint8_t,
-    pub ev_closure: uint8_t,
-    pub ev_timeout: timeval,
-    pub ev_callback: Option<unsafe extern "C" fn(_: libc::c_int,
-                                                 _: libc::c_short,
-                                                 _: *mut libc::c_void) -> ()>,
-    pub ev_arg: *mut libc::c_void,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -565,11 +429,6 @@ pub struct unnamed_8 {
     pub rbe_right: *mut winlink,
     pub rbe_parent: *mut winlink,
     pub rbe_color: libc::c_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_pane_tree {
-    pub rbh_root: *mut window_pane,
 }
 pub type uint16_t = libc::c_ushort;
 pub const OPTIONS_TABLE_COLOUR: options_table_type = 3;
@@ -707,12 +566,6 @@ pub struct unnamed_11 {
 pub type u_int = __u_int;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct window_panes {
-    pub tqh_first: *mut window_pane,
-    pub tqh_last: *mut *mut window_pane,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub union unnamed_12 {
     offset: u_int,
     data: unnamed_36,
@@ -724,26 +577,6 @@ pub const LINE_SEL_NONE: unnamed_26 = 0;
 pub struct unnamed_13 {
     pub tqe_next: *mut client,
     pub tqe_prev: *mut *mut client,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_mode {
-    pub name: *const libc::c_char,
-    pub init: Option<unsafe extern "C" fn(_: *mut window_pane,
-                                          _: *mut cmd_find_state,
-                                          _: *mut args) -> *mut screen>,
-    pub free: Option<unsafe extern "C" fn(_: *mut window_pane) -> ()>,
-    pub resize: Option<unsafe extern "C" fn(_: *mut window_pane, _: u_int,
-                                            _: u_int) -> ()>,
-    pub key: Option<unsafe extern "C" fn(_: *mut window_pane, _: *mut client,
-                                         _: *mut session, _: key_code,
-                                         _: *mut mouse_event) -> ()>,
-    pub key_table: Option<unsafe extern "C" fn(_: *mut window_pane)
-                              -> *const libc::c_char>,
-    pub command: Option<unsafe extern "C" fn(_: *mut window_pane,
-                                             _: *mut client, _: *mut session,
-                                             _: *mut args,
-                                             _: *mut mouse_event) -> ()>,
 }
 pub type uint8_t = libc::c_uchar;
 pub const CMD_RETURN_WAIT: cmd_retval = 1;
@@ -808,12 +641,6 @@ pub type bufferevent_event_cb =
 pub const LINE_SEL_RIGHT_LEFT: unnamed_26 = 2;
 pub const CMD_RETURN_NORMAL: cmd_retval = 0;
 pub type __off64_t = libc::c_long;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct timeval {
-    pub tv_sec: __time_t,
-    pub tv_usec: __suseconds_t,
-}
 pub type unnamed_17 = libc::c_uint;
 pub type prompt_free_cb =
     Option<unsafe extern "C" fn(_: *mut libc::c_void) -> ()>;
@@ -853,11 +680,6 @@ pub struct key_binding {
 }
 pub const PROMPT_ENTRY: unnamed_17 = 0;
 pub type time_t = __time_t;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct winlinks {
-    pub rbh_root: *mut winlink,
-}
 pub const JOB_RUNNING: unnamed_16 = 0;
 pub const CMD_RETURN_STOP: cmd_retval = 2;
 pub const OPTIONS_TABLE_NUMBER: options_table_type = 1;
@@ -866,18 +688,6 @@ pub const OPTIONS_TABLE_NUMBER: options_table_type = 1;
 pub struct unnamed_19 {
     pub tqh_first: *mut message_entry,
     pub tqh_last: *mut *mut message_entry,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct termios {
-    pub c_iflag: tcflag_t,
-    pub c_oflag: tcflag_t,
-    pub c_cflag: tcflag_t,
-    pub c_lflag: tcflag_t,
-    pub c_line: cc_t,
-    pub c_cc: [cc_t; 32],
-    pub c_ispeed: speed_t,
-    pub c_ospeed: speed_t,
 }
 pub type _IO_lock_t = ();
 #[derive ( Copy , Clone )]
@@ -931,66 +741,12 @@ pub struct cmd_entry {
 pub const JOB_CLOSED: unnamed_16 = 2;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub union unnamed_21 {
-    ev_io: unnamed_32,
-    ev_signal: unnamed_35,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct unnamed_22 {
     pub template: *const libc::c_char,
     pub lower: libc::c_int,
     pub upper: libc::c_int,
 }
 pub const OPTIONS_TABLE_CHOICE: options_table_type = 6;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_pane {
-    pub id: u_int,
-    pub active_point: u_int,
-    pub window: *mut window,
-    pub layout_cell: *mut layout_cell,
-    pub saved_layout_cell: *mut layout_cell,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub osx: u_int,
-    pub osy: u_int,
-    pub xoff: u_int,
-    pub yoff: u_int,
-    pub flags: libc::c_int,
-    pub argc: libc::c_int,
-    pub argv: *mut *mut libc::c_char,
-    pub shell: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub pid: pid_t,
-    pub tty: [libc::c_char; 32],
-    pub status: libc::c_int,
-    pub fd: libc::c_int,
-    pub event: *mut bufferevent,
-    pub resize_timer: event,
-    pub ictx: *mut input_ctx,
-    pub colgc: grid_cell,
-    pub palette: *mut libc::c_int,
-    pub pipe_fd: libc::c_int,
-    pub pipe_event: *mut bufferevent,
-    pub pipe_off: size_t,
-    pub screen: *mut screen,
-    pub base: screen,
-    pub status_screen: screen,
-    pub status_size: size_t,
-    pub saved_cx: u_int,
-    pub saved_cy: u_int,
-    pub saved_grid: *mut grid,
-    pub saved_cell: grid_cell,
-    pub mode: *const window_mode,
-    pub modedata: *mut libc::c_void,
-    pub modetimer: event,
-    pub modelast: time_t,
-    pub modeprefix: u_int,
-    pub searchstr: *mut libc::c_char,
-    pub entry: unnamed_29,
-    pub tree_entry: unnamed_4,
-}
 pub const OPTIONS_TABLE_FLAG: options_table_type = 5;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -999,12 +755,6 @@ pub struct unnamed_23 {
     pub tqh_last: *mut *mut cmd,
 }
 pub const TTY_VT102: unnamed_28 = 2;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub union unnamed_24 {
-    ev_next_with_common_timeout: unnamed_38,
-    min_heap_idx: libc::c_int,
-}
 pub const OPTIONS_TABLE_STRING: options_table_type = 0;
 pub type layout_type = libc::c_uint;
 #[derive ( Copy , Clone )]
@@ -1087,12 +837,6 @@ pub struct key_table {
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_27 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct key_bindings {
     pub rbh_root: *mut key_binding,
 }
@@ -1140,12 +884,6 @@ pub struct unnamed_29 {
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_30 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct grid_cell {
     pub flags: u_char,
     pub attr: u_short,
@@ -1170,34 +908,9 @@ pub struct layout_cell {
 pub const OPTIONS_TABLE_STYLE: options_table_type = 7;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct winlink {
-    pub idx: libc::c_int,
-    pub session: *mut session,
-    pub window: *mut window,
-    pub status_width: size_t,
-    pub status_cell: grid_cell,
-    pub status_text: *mut libc::c_char,
-    pub flags: libc::c_int,
-    pub entry: unnamed_8,
-    pub wentry: unnamed_31,
-    pub sentry: unnamed_11,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct windows {
-    pub rbh_root: *mut window,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct unnamed_31 {
     pub tqe_next: *mut winlink,
     pub tqe_prev: *mut *mut winlink,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_32 {
-    pub ev_io_next: unnamed_27,
-    pub ev_timeout: timeval,
 }
 pub type bitstr_t = libc::c_uchar;
 #[derive ( Copy , Clone )]
@@ -1225,12 +938,6 @@ pub struct grid_line {
 pub type __u_int = libc::c_uint;
 pub type __pid_t = libc::c_int;
 pub const CMD_FIND_WINDOW: cmd_find_type = 1;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_34 {
-    pub tqh_first: *mut winlink,
-    pub tqh_last: *mut *mut winlink,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_35 {
@@ -1277,12 +984,6 @@ pub struct args {
     pub tree: args_tree,
     pub argc: libc::c_int,
     pub argv: *mut *mut libc::c_char,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_38 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]

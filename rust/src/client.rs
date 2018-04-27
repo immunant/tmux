@@ -3,12 +3,15 @@ extern crate libc;
 use compat::imsg::imsg;
 use compat::closefrom::closefrom;
 use compat::strlcpy::strlcpy;
+use common::timeval;
 use cmd::{cmd, cmd_pack_argv};
+use cmd_queue::{cmdq_shared, cmdq_list};
 use cmd_list::{unnamed_6 as unnamed_10, cmd_list, cmd_list_free, cmd_list_parse};
 use environ::{environ, environ_free};
 use options::{self, options_free, options_table_entry};
-use osdep::event_base;
-use proc_::{proc_send, proc_exit, proc_loop, proc_start, proc_set_signals, proc_clear_signals, proc_add_peer, tmuxpeer, tmuxproc};
+use proc_::{evbuffer, event_base, proc_send, proc_exit, proc_loop, proc_start, proc_set_signals, proc_clear_signals, proc_add_peer, tmuxpeer, tmuxproc};
+use session::{session, sessions, session_group, session_groups};
+use server::{server_start};
 use xmalloc::xmalloc;
 
 extern "C" {
@@ -20,7 +23,6 @@ extern "C" {
     pub type format_job_tree;
     pub type input_ctx;
     pub type format_tree;
-    pub type evbuffer;
     pub type tty_code;
     #[no_mangle]
     fn open(__file: *const libc::c_char, __oflag: libc::c_int, ...)
@@ -215,9 +217,6 @@ extern "C" {
     #[no_mangle]
     fn fatalx(_: *const libc::c_char, ...) -> !;
     #[no_mangle]
-    fn server_start(_: *mut tmuxproc, _: *mut event_base, _: libc::c_int,
-                    _: *mut libc::c_char) -> libc::c_int;
-    #[no_mangle]
     static mut key_tables: key_tables;
     #[no_mangle]
     static mut server_proc: *mut tmuxproc;
@@ -275,58 +274,9 @@ pub struct unnamed {
     pub si_utime: __sigchld_clock_t,
     pub si_stime: __sigchld_clock_t,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct winlink_stack {
-    pub tqh_first: *mut winlink,
-    pub tqh_last: *mut *mut winlink,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub creation_time: timeval,
-    pub last_attached_time: timeval,
-    pub activity_time: timeval,
-    pub last_activity_time: timeval,
-    pub lock_timer: event,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub curw: *mut winlink,
-    pub lastw: winlink_stack,
-    pub windows: winlinks,
-    pub statusat: libc::c_int,
-    pub hooks: *mut hooks,
-    pub options: *mut options::options,
-    pub flags: libc::c_int,
-    pub attached: u_int,
-    pub tio: *mut termios,
-    pub environ: *mut environ,
-    pub references: libc::c_int,
-    pub gentry: unnamed_21,
-    pub entry: unnamed_15,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmdq_shared {
-    pub references: libc::c_int,
-    pub flags: libc::c_int,
-    pub formats: *mut format_tree,
-    pub mouse: mouse_event,
-    pub current: cmd_find_state,
-}
 pub const MSG_EXITED: msgtype = 204;
 pub const CMDQ_COMMAND: cmdq_type = 0;
 pub const CMD_RETURN_STOP: cmd_retval = 2;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session_group {
-    pub name: *const libc::c_char,
-    pub sessions: unnamed_45,
-    pub entry: unnamed_17,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct sigaction {
@@ -611,12 +561,6 @@ pub struct key_table {
     pub references: u_int,
     pub entry: unnamed_49,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmdq_list {
-    pub tqh_first: *mut cmdq_item,
-    pub tqh_last: *mut *mut cmdq_item,
-}
 pub type __socket_type = libc::c_uint;
 pub type uint32_t = libc::c_uint;
 pub const CLIENT_EXIT_DETACHED_HUP: unnamed_11 = 2;
@@ -676,12 +620,6 @@ pub struct unnamed_18 {
 pub type key_code = libc::c_ulonglong;
 pub type cmd_find_type = libc::c_uint;
 pub type __sighandler_t = Option<unsafe extern "C" fn(_: libc::c_int) -> ()>;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct timeval {
-    pub tv_sec: __time_t,
-    pub tv_usec: __suseconds_t,
-}
 pub const JOB_RUNNING: unnamed_7 = 0;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -860,11 +798,6 @@ pub struct grid_line {
     pub extdsize: u_int,
     pub extddata: *mut grid_cell,
     pub flags: libc::c_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct sessions {
-    pub rbh_root: *mut session,
 }
 pub const MSG_STDERR: msgtype = 211;
 pub const SOCK_STREAM: __socket_type = 1;
@@ -1277,11 +1210,6 @@ pub struct screen {
     pub sel: screen_sel,
 }
 pub type __time_t = libc::c_long;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session_groups {
-    pub rbh_root: *mut session_group,
-}
 pub const LAYOUT_LEFTRIGHT: layout_type = 0;
 pub const MSG_IDENTIFY_TTYNAME: msgtype = 102;
 #[derive ( Copy , Clone )]

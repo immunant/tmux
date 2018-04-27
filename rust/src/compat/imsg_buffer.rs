@@ -2,6 +2,9 @@ extern crate libc;
 
 const IOV_MAX: u64 = 1024;
 
+use compat::freezero::freezero;
+use compat::recallocarray::recallocarray;
+
 extern "C" {
     pub type _IO_FILE_plus;
     #[no_mangle]
@@ -52,11 +55,6 @@ extern "C" {
     static mut sys_nerr: libc::c_int;
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
-    #[no_mangle]
-    fn recallocarray(_: *mut libc::c_void, _: size_t, _: size_t, _: size_t)
-     -> *mut libc::c_void;
-    #[no_mangle]
-    fn freezero(_: *mut libc::c_void, _: size_t) -> ();
     #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]

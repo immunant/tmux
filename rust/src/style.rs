@@ -1,5 +1,7 @@
 extern crate libc;
 
+use attributes::{attributes_fromstring, attributes_tostring};
+use colour::{colour_fromstring, colour_tostring};
 use grid::{grid_cell, grid_cell_entry, utf8_data};
 
 extern "C" {
@@ -111,14 +113,6 @@ extern "C" {
     static mut clients: clients;
     #[no_mangle]
     static mut marked_pane: cmd_find_state;
-    #[no_mangle]
-    fn colour_tostring(_: libc::c_int) -> *const libc::c_char;
-    #[no_mangle]
-    fn colour_fromstring(s: *const libc::c_char) -> libc::c_int;
-    #[no_mangle]
-    fn attributes_tostring(_: libc::c_int) -> *const libc::c_char;
-    #[no_mangle]
-    fn attributes_fromstring(_: *const libc::c_char) -> libc::c_int;
     #[no_mangle]
     static grid_default_cell: grid_cell;
     #[no_mangle]

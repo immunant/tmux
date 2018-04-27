@@ -1,20 +1,12 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use client::{client, clients};
+use session::session;
+use proc_::{tmuxproc, event_base, proc_send, proc_start, proc_loop, proc_set_signals, proc_clear_signals, proc_toggle_log};
+use notify::notify_client;
+
 extern "C" {
     pub type bufferevent_ops;
-    pub type tmuxproc;
     pub type args_entry;
     pub type input_ctx;
     pub type evbuffer;
@@ -27,7 +19,6 @@ extern "C" {
     pub type options;
     pub type format_tree;
     pub type tty_code;
-    pub type event_base;
     #[no_mangle]
     fn socket(__domain: libc::c_int, __type: libc::c_int,
               __protocol: libc::c_int) -> libc::c_int;
@@ -185,27 +176,9 @@ extern "C" {
     #[no_mangle]
     fn setblocking(_: libc::c_int, _: libc::c_int) -> ();
     #[no_mangle]
-    fn proc_send(_: *mut tmuxpeer, _: msgtype, _: libc::c_int,
-                 _: *const libc::c_void, _: size_t) -> libc::c_int;
-    #[no_mangle]
-    fn proc_start(_: *const libc::c_char) -> *mut tmuxproc;
-    #[no_mangle]
-    fn proc_loop(_: *mut tmuxproc,
-                 _: Option<unsafe extern "C" fn() -> libc::c_int>) -> ();
-    #[no_mangle]
-    fn proc_set_signals(_: *mut tmuxproc,
-                        _: Option<unsafe extern "C" fn(_: libc::c_int) -> ()>)
-     -> ();
-    #[no_mangle]
-    fn proc_clear_signals(_: *mut tmuxproc, _: libc::c_int) -> ();
-    #[no_mangle]
-    fn proc_toggle_log(_: *mut tmuxproc) -> ();
-    #[no_mangle]
     static mut cfg_finished: libc::c_int;
     #[no_mangle]
     fn start_cfg() -> ();
-    #[no_mangle]
-    fn notify_client(_: *const libc::c_char, _: *mut client) -> ();
     #[no_mangle]
     fn options_get_number(_: *mut options, _: *const libc::c_char)
      -> libc::c_longlong;
@@ -311,12 +284,6 @@ pub type __blksize_t = libc::c_long;
 pub const OPTIONS_TABLE_NONE: options_table_scope = 0;
 pub type bitstr_t = libc::c_uchar;
 pub type cmd_find_type = libc::c_uint;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct clients {
-    pub tqh_first: *mut client,
-    pub tqh_last: *mut *mut client,
-}
 pub const PROMPT_ENTRY: unnamed_24 = 0;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -1020,67 +987,6 @@ pub struct session_groups {
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct client {
-    pub name: *const libc::c_char,
-    pub peer: *mut tmuxpeer,
-    pub queue: cmdq_list,
-    pub pid: pid_t,
-    pub fd: libc::c_int,
-    pub event: event,
-    pub retval: libc::c_int,
-    pub creation_time: timeval,
-    pub activity_time: timeval,
-    pub environ: *mut environ,
-    pub jobs: *mut format_job_tree,
-    pub title: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub term: *mut libc::c_char,
-    pub ttyname: *mut libc::c_char,
-    pub tty: tty,
-    pub written: size_t,
-    pub discarded: size_t,
-    pub redraw: size_t,
-    pub stdin_callback: Option<unsafe extern "C" fn(_: *mut client,
-                                                    _: libc::c_int,
-                                                    _: *mut libc::c_void)
-                                   -> ()>,
-    pub stdin_callback_data: *mut libc::c_void,
-    pub stdin_data: *mut evbuffer,
-    pub stdin_closed: libc::c_int,
-    pub stdout_data: *mut evbuffer,
-    pub stderr_data: *mut evbuffer,
-    pub repeat_timer: event,
-    pub click_timer: event,
-    pub click_button: u_int,
-    pub status: status_line,
-    pub flags: libc::c_int,
-    pub keytable: *mut key_table,
-    pub identify_timer: event,
-    pub identify_callback: Option<unsafe extern "C" fn(_: *mut client,
-                                                       _: *mut window_pane)
-                                      -> ()>,
-    pub identify_callback_data: *mut libc::c_void,
-    pub message_string: *mut libc::c_char,
-    pub message_timer: event,
-    pub message_next: u_int,
-    pub message_log: unnamed_40,
-    pub prompt_string: *mut libc::c_char,
-    pub prompt_buffer: *mut utf8_data,
-    pub prompt_index: size_t,
-    pub prompt_inputcb: prompt_input_cb,
-    pub prompt_freecb: prompt_free_cb,
-    pub prompt_data: *mut libc::c_void,
-    pub prompt_hindex: u_int,
-    pub prompt_mode: unnamed_24,
-    pub prompt_flags: libc::c_int,
-    pub session: *mut session,
-    pub last_session: *mut session,
-    pub wlmouse: libc::c_int,
-    pub references: libc::c_int,
-    pub entry: unnamed_43,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct job {
     pub state: unnamed_21,
     pub flags: libc::c_int,
@@ -1339,33 +1245,6 @@ pub struct unnamed_40 {
 }
 pub const OPTIONS_TABLE_ARRAY: options_table_type = 8;
 pub const SOCK_PACKET: __socket_type = 10;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub creation_time: timeval,
-    pub last_attached_time: timeval,
-    pub activity_time: timeval,
-    pub last_activity_time: timeval,
-    pub lock_timer: event,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub curw: *mut winlink,
-    pub lastw: winlink_stack,
-    pub windows: winlinks,
-    pub statusat: libc::c_int,
-    pub hooks: *mut hooks,
-    pub options: *mut options,
-    pub flags: libc::c_int,
-    pub attached: u_int,
-    pub tio: *mut termios,
-    pub environ: *mut environ,
-    pub references: libc::c_int,
-    pub gentry: unnamed_36,
-    pub entry: unnamed_31,
-}
 pub type tcflag_t = libc::c_uint;
 pub type __ino_t = libc::c_ulong;
 pub const SOCK_RDM: __socket_type = 4;

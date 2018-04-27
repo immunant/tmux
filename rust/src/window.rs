@@ -1,9 +1,13 @@
 extern crate libc;
+
+use common::termios;
+use environ::environ;
+use session::{session, session_group, session_groups, sessions};
+
 extern "C" {
     pub type args_entry;
     pub type format_job_tree;
     pub type options;
-    pub type environ;
     pub type hooks;
     pub type options_entry;
     pub type input_ctx;
@@ -732,13 +736,6 @@ pub struct window_pane_tree {
     pub rbh_root: *mut window_pane,
 }
 pub const KEYC_HOME: unnamed_37 = 268435540;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session_group {
-    pub name: *const libc::c_char,
-    pub sessions: unnamed_18,
-    pub entry: unnamed_34,
-}
 pub const LAYOUT_TOPBOTTOM: layout_type = 1;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -780,11 +777,6 @@ pub struct joblist {
     pub lh_first: *mut job,
 }
 pub const OPTIONS_TABLE_KEY: options_table_type = 2;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session_groups {
-    pub rbh_root: *mut session_group,
-}
 pub const KEYC_FOCUS_OUT: unnamed_37 = 268435457;
 pub const KEYC_TRIPLECLICK1_PANE: unnamed_37 = 268435516;
 #[derive ( Copy , Clone )]
@@ -1084,18 +1076,6 @@ pub struct unnamed_25 {
 pub const CMDQ_COMMAND: cmdq_type = 0;
 pub type unnamed_26 = libc::c_uint;
 pub type options_table_type = libc::c_uint;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct termios {
-    pub c_iflag: tcflag_t,
-    pub c_oflag: tcflag_t,
-    pub c_cflag: tcflag_t,
-    pub c_lflag: tcflag_t,
-    pub c_line: cc_t,
-    pub c_cc: [cc_t; 32],
-    pub c_ispeed: speed_t,
-    pub c_ospeed: speed_t,
-}
 pub const KEYC_DOWN: unnamed_37 = 268435546;
 pub const KEYC_MOUSEMOVE_STATUS: unnamed_37 = 268435463;
 #[derive ( Copy , Clone )]
@@ -1306,33 +1286,6 @@ pub struct unnamed_34 {
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct session {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub creation_time: timeval,
-    pub last_attached_time: timeval,
-    pub activity_time: timeval,
-    pub last_activity_time: timeval,
-    pub lock_timer: event,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub curw: *mut winlink,
-    pub lastw: winlink_stack,
-    pub windows: winlinks,
-    pub statusat: libc::c_int,
-    pub hooks: *mut hooks,
-    pub options: *mut options,
-    pub flags: libc::c_int,
-    pub attached: u_int,
-    pub tio: *mut termios,
-    pub environ: *mut environ,
-    pub references: libc::c_int,
-    pub gentry: unnamed_22,
-    pub entry: unnamed_1,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct bufferevent {
     pub ev_base: *mut event_base,
     pub be_ops: *const bufferevent_ops,
@@ -1392,11 +1345,6 @@ pub struct options_table_entry {
 }
 pub const KEYC_F9: unnamed_37 = 268435534;
 pub const KEYC_KP_SLASH: unnamed_37 = 268435549;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct sessions {
-    pub rbh_root: *mut session,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct tty {

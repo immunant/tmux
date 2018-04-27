@@ -11,39 +11,36 @@
 #![allow ( dead_code )]
 #![allow ( mutable_transmutes )]
 #![allow ( unused_mut )]
+#![allow(private_no_mangle_fns)]
+#![allow(private_no_mangle_statics)]
 extern crate libc;
 
-#[allow(private_no_mangle_fns)]
+mod arguments;
+mod attributes;
 mod cfg;
-#[allow(private_no_mangle_fns)]
 mod client;
-#[allow(private_no_mangle_fns)]
+mod common;
 mod cmd;
-#[allow(private_no_mangle_fns)]
+mod cmd_queue;
+mod cmd_attach_session;
+mod cmd_bind_key;
 mod cmd_find;
-#[allow(private_no_mangle_fns)]
+mod cmd_find_window;
 mod cmd_list;
-#[allow(private_no_mangle_fns)]
+mod colour;
 mod compat;
-#[allow(private_no_mangle_fns)]
 mod environ;
-#[allow(private_no_mangle_fns)]
 mod grid;
-#[allow(private_no_mangle_fns)]
 mod hooks;
-#[allow(private_no_mangle_fns)]
 mod log;
-#[allow(private_no_mangle_fns)]
+mod notify;
 mod options;
-#[allow(private_no_mangle_fns)]
 mod osdep;
-#[allow(private_no_mangle_fns)]
 mod proc_;
-#[allow(private_no_mangle_fns)]
+mod session;
+mod server;
 mod style;
-#[allow(private_no_mangle_fns)]
 mod window;
-#[allow(private_no_mangle_fns)]
 mod xmalloc;
 
 use cfg::set_cfg_file;
@@ -51,10 +48,12 @@ use client::{client_main, clients, cmdq_item};
 use compat::getprogname::getprogname;
 use compat::fdforkpty::getptmfd;
 use environ::{environ_create, environ_put};
-use hooks::{session, sessions, hooks_create};
+use hooks::hooks_create;
 use log::log_add_level;
 use options::{options_create, options_default, options_set_number, options_table_entry};
-use osdep::{event_base, osdep_event_init};
+use osdep::{osdep_event_init};
+use proc_::event_base;
+use session::sessions;
 
 extern "C" {
     pub type _IO_FILE_plus;
@@ -286,7 +285,7 @@ pub const _NL_NUM_LC_MESSAGES: unnamed_18 = 327685;
 #[repr ( C )]
 pub struct winlink {
     pub idx: libc::c_int,
-    pub session: *mut session,
+    pub session: *mut session::session,
     pub window: *mut window::window,
     pub status_width: size_t,
     pub status_cell: grid::grid_cell,
@@ -343,8 +342,8 @@ pub const __P_SEP_BY_SPACE: unnamed_18 = 262154;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_0 {
-    pub tqh_first: *mut session,
-    pub tqh_last: *mut *mut session,
+    pub tqh_first: *mut session::session,
+    pub tqh_last: *mut *mut session::session,
 }
 pub const _NL_MONETARY_DECIMAL_POINT_WC: unnamed_18 = 262187;
 #[derive ( Copy , Clone )]
@@ -715,9 +714,9 @@ pub const _NL_TIME_ERA_ENTRIES: unnamed_18 = 131123;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_15 {
-    pub rbe_left: *mut session,
-    pub rbe_right: *mut session,
-    pub rbe_parent: *mut session,
+    pub rbe_left: *mut session::session,
+    pub rbe_right: *mut session::session,
+    pub rbe_parent: *mut session::session,
     pub rbe_color: libc::c_int,
 }
 pub const _NL_CTYPE_CLASS: unnamed_18 = 0;
@@ -1087,8 +1086,8 @@ pub const _NL_MONETARY_DUO_INT_N_SEP_BY_SPACE: unnamed_18 = 262177;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_30 {
-    pub tqe_next: *mut session,
-    pub tqe_prev: *mut *mut session,
+    pub tqe_next: *mut session::session,
+    pub tqe_prev: *mut *mut session::session,
 }
 pub const _NL_CTYPE_INDIGITS3_MB: unnamed_18 = 23;
 pub const _NL_IDENTIFICATION_REVISION: unnamed_18 = 786444;

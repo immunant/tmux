@@ -1,26 +1,58 @@
 extern crate libc;
 
-use compat::imsg::{imsg, imsgbuf, imsg_hdr, imsg_free, imsg_clear, imsg_init, imsg_get, imsg_compose};
+use common::timeval;
+use compat::imsg::{imsg, imsgbuf, imsg_hdr, imsg_free, imsg_clear, imsg_init, imsg_read, imsg_get, imsg_compose};
 use compat::imsg_buffer::msgbuf;
+use environ::environ;
+use hooks::hooks;
+use options::options;
 use log::{log_open, log_toggle};
 use xmalloc::xcalloc;
+
+#[link(name = "event")]
+extern "C" {
+    pub type event_base;
+    pub type evbuffer;
+    #[no_mangle]
+    pub fn event_init() -> *mut event_base;
+    #[no_mangle]
+    pub fn event_add(ev: *mut event, timeout: *const timeval) -> libc::c_int;
+    #[no_mangle]
+    pub fn event_del(_: *mut event) -> libc::c_int;
+    #[no_mangle]
+    pub fn event_get_version() -> *const libc::c_char;
+    #[no_mangle]
+    pub fn event_loop(_: libc::c_int) -> libc::c_int;
+    #[no_mangle]
+    pub fn event_get_method() -> *const libc::c_char;
+    #[no_mangle]
+    pub fn event_set(_: *mut event, _: libc::c_int, _: libc::c_short,
+                 _:
+                     Option<unsafe extern "C" fn(_: libc::c_int,
+                                                 _: libc::c_short,
+                                                 _: *mut libc::c_void) -> ()>,
+                 _: *mut libc::c_void) -> ();
+    #[no_mangle]
+    pub fn event_initialized(ev: *const event) -> libc::c_int;
+    #[no_mangle]
+    pub fn event_once(_: libc::c_int, _: libc::c_short,
+                  _:
+                      Option<unsafe extern "C" fn(_: libc::c_int,
+                                                  _: libc::c_short,
+                                                  _: *mut libc::c_void)
+                                 -> ()>, _: *mut libc::c_void,
+                  _: *const timeval) -> libc::c_int;
+}
 
 extern "C" {
     pub type _IO_FILE_plus;
     pub type format_tree;
     pub type bufferevent_ops;
     pub type format_job_tree;
-    pub type evbuffer;
-    pub type environ;
-    pub type hooks;
-    pub type options;
     pub type tty_code;
     pub type input_ctx;
     pub type screen_titles;
     pub type args_entry;
-    pub type event_base;
-    #[no_mangle]
-    fn imsg_read(_: *mut imsgbuf) -> ssize_t; // Miguel is looking into this translation issue
     #[no_mangle]
     fn uname(__name: *mut utsname) -> libc::c_int;
     #[no_mangle]
@@ -45,23 +77,6 @@ extern "C" {
     static mut sys_nerr: libc::c_int;
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
-    #[no_mangle]
-    fn event_add(ev: *mut event, timeout: *const timeval) -> libc::c_int;
-    #[no_mangle]
-    fn event_del(_: *mut event) -> libc::c_int;
-    #[no_mangle]
-    fn event_get_version() -> *const libc::c_char;
-    #[no_mangle]
-    fn event_loop(_: libc::c_int) -> libc::c_int;
-    #[no_mangle]
-    fn event_get_method() -> *const libc::c_char;
-    #[no_mangle]
-    fn event_set(_: *mut event, _: libc::c_int, _: libc::c_short,
-                 _:
-                     Option<unsafe extern "C" fn(_: libc::c_int,
-                                                 _: libc::c_short,
-                                                 _: *mut libc::c_void) -> ()>,
-                 _: *mut libc::c_void) -> ();
     #[no_mangle]
     fn sigemptyset(__set: *mut sigset_t) -> libc::c_int;
     #[no_mangle]
@@ -197,8 +212,8 @@ pub type job_complete_cb = Option<unsafe extern "C" fn(_: *mut job) -> ()>;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub union unnamed {
-    ev_next_with_common_timeout: unnamed_43,
-    min_heap_idx: libc::c_int,
+    pub ev_next_with_common_timeout: unnamed_43,
+    pub min_heap_idx: libc::c_int,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -507,8 +522,8 @@ pub type __suseconds_t = libc::c_long;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub union unnamed_14 {
-    ev_io: unnamed_16,
-    ev_signal: unnamed_47,
+    pub ev_io: unnamed_16,
+    pub ev_signal: unnamed_47,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -1225,12 +1240,6 @@ pub struct layout_cells {
 }
 pub type options_table_type = libc::c_uint;
 pub const MSG_DETACHKILL: msgtype = 202;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct timeval {
-    pub tv_sec: __time_t,
-    pub tv_usec: __suseconds_t,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct grid_line {

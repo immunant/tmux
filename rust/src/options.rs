@@ -1,7 +1,9 @@
 extern crate libc;
 
-use style::style_parse;
-use grid::{grid_cell, utf8_data};
+use attributes::attributes_tostring;
+use colour::colour_tostring;
+use grid::{grid_cell, utf8_data, grid_default_cell};
+use style::{style_parse, style_tostring};
 use xmalloc::{xstrdup, xcalloc, xreallocarray};
 
 extern "C" {
@@ -105,15 +107,7 @@ extern "C" {
     #[no_mangle]
     static mut cfg_finished: libc::c_int;
     #[no_mangle]
-    static grid_default_cell: grid_cell;
-    #[no_mangle]
-    fn attributes_tostring(_: libc::c_int) -> *const libc::c_char;
-    #[no_mangle]
-    fn colour_tostring(_: libc::c_int) -> *const libc::c_char;
-    #[no_mangle]
     fn key_string_lookup_key(_: key_code) -> *const libc::c_char;
-    #[no_mangle]
-    fn style_tostring(_: *mut grid_cell) -> *const libc::c_char;
     #[no_mangle]
     static options_table: [options_table_entry; 0];
     #[no_mangle]

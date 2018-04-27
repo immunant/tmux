@@ -6,22 +6,34 @@
 #include <unistd.h>
 
 #include "tmux.h"
-// #include "variadic.h"
+#include "variadic.h"
 
-// extern int xvasprintf(char **, const char *, va_list) __attribute__((__nonnull__ (2)));
+// Structure declarations
+struct format_entry;
+struct options;
+struct options_parent_table_entry;
+struct options_table_entry;
+
+// Extern functions
+extern int xvasprintf(char **, const char *, va_list) __attribute__((__nonnull__ (2)));
+extern void log_vwrite(const char *, va_list);
+extern struct options_entry *options_add(struct options *oo, const char *name);
+extern struct options_entry *options_default(struct options *oo, const struct options_table_entry *oe);
+extern const struct options_table_entry *options_parent_table_entry(struct options *oo, const char *s);
+extern long long options_get_number(struct options *oo, const char *name);
 
 extern char **cfg_causes;
 extern u_int cfg_ncauses;
 // format.c:
 typedef void (*format_cb)(struct format_tree *, struct format_entry *);
-extern struct format_entry {
+struct format_entry {
 	char			*key;
 	char			*value;
 	time_t			 t;
 	format_cb		 cb;
 	RB_ENTRY(format_entry)	 entry;
 };
-extern struct format_tree {
+struct format_tree {
 	struct window		*w;
 	struct winlink		*wl;
 	struct session		*s;
@@ -34,7 +46,7 @@ extern struct format_tree {
 	RB_HEAD(format_entry_tree, format_entry) tree;
 };
 extern void status_message_callback(int, short, void *);
-extern struct options_entry {
+struct options_entry {
 	struct options				 *owner;
 
 	const char				 *name;
@@ -52,7 +64,7 @@ extern struct options_entry {
 
 	RB_ENTRY(options_entry)			  entry;
 };
-extern struct input_param {
+struct input_param {
 	enum {
 		INPUT_MISSING,
 		INPUT_NUMBER,
@@ -63,13 +75,13 @@ extern struct input_param {
 		char	       *str;
 	};
 };
-extern struct input_cell {
+struct input_cell {
 	struct grid_cell	cell;
 	int			set;
 	int			g0set;	/* 1 if ACS */
 	int			g1set;	/* 1 if ACS */
 };
-extern struct input_ctx {
+struct input_ctx {
 	struct window_pane     *wp;
 	struct screen_write_ctx ctx;
 

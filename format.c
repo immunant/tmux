@@ -118,7 +118,7 @@ struct format_tree {
 	RB_HEAD(format_entry_tree, format_entry) tree;
 };
 static int format_entry_cmp(struct format_entry *, struct format_entry *);
-RB_GENERATE_STATIC(format_entry_tree, format_entry, entry, format_entry_cmp);
+RB_GENERATE(format_entry_tree, format_entry, entry, format_entry_cmp);
 
 /* Format entry tree comparison function. */
 static int

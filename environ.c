@@ -31,7 +31,7 @@
 
 RB_HEAD(environ, environ_entry);
 static int environ_cmp(struct environ_entry *, struct environ_entry *);
-RB_GENERATE_STATIC(environ, environ_entry, entry, environ_cmp);
+RB_GENERATE(environ, environ_entry, entry, environ_cmp);
 
 static int
 environ_cmp(struct environ_entry *envent1, struct environ_entry *envent2)

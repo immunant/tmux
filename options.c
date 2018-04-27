@@ -55,7 +55,7 @@ struct options {
 	struct options				*parent;
 };
 
-static struct options_entry	*options_add(struct options *, const char *);
+struct options_entry	*options_add(struct options *, const char *);
 
 #define OPTIONS_ARRAY_LIMIT 1000
 
@@ -86,7 +86,7 @@ options_cmp(struct options_entry *lhs, struct options_entry *rhs)
 	return (strcmp(lhs->name, rhs->name));
 }
 
-static const struct options_table_entry *
+const struct options_table_entry *
 options_parent_table_entry(struct options *oo, const char *s)
 {
 	struct options_entry	*o;
@@ -185,7 +185,7 @@ options_default(struct options *oo, const struct options_table_entry *oe)
 	return (o);
 }
 
-static struct options_entry *
+struct options_entry *
 options_add(struct options *oo, const char *name)
 {
 	struct options_entry	*o;

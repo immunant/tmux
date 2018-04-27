@@ -377,6 +377,10 @@ fatalx(const char *msg, ...)
 	exit(1);
 }
 
+#define OPTIONS_IS_STRING(o)						\
+	((o)->tableentry == NULL ||					\
+	    (o)->tableentry->type == OPTIONS_TABLE_STRING)
+
 struct options_entry *
 options_set_string(struct options *oo, const char *name, int append,
     const char *fmt, ...)

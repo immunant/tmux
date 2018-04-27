@@ -1,4 +1,8 @@
 extern crate libc;
+
+use common::termios;
+use window::winsize;
+
 extern "C" {
     pub type _IO_FILE_plus;
     #[no_mangle]
@@ -35,30 +39,10 @@ pub type __off64_t = libc::c_long;
 pub type speed_t = libc::c_uint;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct termios {
-    pub c_iflag: tcflag_t,
-    pub c_oflag: tcflag_t,
-    pub c_cflag: tcflag_t,
-    pub c_lflag: tcflag_t,
-    pub c_line: cc_t,
-    pub c_cc: [cc_t; 32],
-    pub c_ispeed: speed_t,
-    pub c_ospeed: speed_t,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct _IO_marker {
     pub _next: *mut _IO_marker,
     pub _sbuf: *mut _IO_FILE,
     pub _pos: libc::c_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct winsize {
-    pub ws_row: libc::c_ushort,
-    pub ws_col: libc::c_ushort,
-    pub ws_xpixel: libc::c_ushort,
-    pub ws_ypixel: libc::c_ushort,
 }
 pub type __off_t = libc::c_long;
 pub type tcflag_t = libc::c_uint;

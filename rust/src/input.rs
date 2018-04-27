@@ -1,17 +1,7 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use window::window_pane;
+
 extern "C" {
     pub type options;
     pub type screen_write_collect_item;
@@ -656,54 +646,6 @@ pub const PROMPT_ENTRY: unnamed_35 = 0;
 pub struct unnamed_10 {
     pub tqe_next: *mut event,
     pub tqe_prev: *mut *mut event,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_pane {
-    pub id: u_int,
-    pub active_point: u_int,
-    pub window: *mut window,
-    pub layout_cell: *mut layout_cell,
-    pub saved_layout_cell: *mut layout_cell,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub osx: u_int,
-    pub osy: u_int,
-    pub xoff: u_int,
-    pub yoff: u_int,
-    pub flags: libc::c_int,
-    pub argc: libc::c_int,
-    pub argv: *mut *mut libc::c_char,
-    pub shell: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub pid: pid_t,
-    pub tty: [libc::c_char; 32],
-    pub status: libc::c_int,
-    pub fd: libc::c_int,
-    pub event: *mut bufferevent,
-    pub resize_timer: event,
-    pub ictx: *mut input_ctx,
-    pub colgc: grid_cell,
-    pub palette: *mut libc::c_int,
-    pub pipe_fd: libc::c_int,
-    pub pipe_event: *mut bufferevent,
-    pub pipe_off: size_t,
-    pub screen: *mut screen,
-    pub base: screen,
-    pub status_screen: screen,
-    pub status_size: size_t,
-    pub saved_cx: u_int,
-    pub saved_cy: u_int,
-    pub saved_grid: *mut grid,
-    pub saved_cell: grid_cell,
-    pub mode: *const window_mode,
-    pub modedata: *mut libc::c_void,
-    pub modetimer: event,
-    pub modelast: time_t,
-    pub modeprefix: u_int,
-    pub searchstr: *mut libc::c_char,
-    pub entry: unnamed_31,
-    pub tree_entry: unnamed_28,
 }
 pub const INPUT_ESC_DECKPNM: input_esc_type = 2;
 pub const INPUT_CSI_ICH: input_csi_type = 19;
@@ -2554,6 +2496,853 @@ unsafe extern "C" fn input_enter_osc(mut ictx: *mut input_ctx) -> () {
     input_clear(ictx);
     input_start_timer(ictx);
     (*ictx).last = 1i32.wrapping_neg();
+}
+unsafe extern "C" fn input_csi_dispatch(mut ictx: *mut input_ctx)
+ -> libc::c_int {
+    let mut current_block: u64;
+    let mut sctx: *mut screen_write_ctx =
+        &mut (*ictx).ctx as *mut screen_write_ctx;
+    let mut s: *mut screen = (*sctx).s;
+    let mut entry: *mut input_table_entry = 0 as *mut input_table_entry;
+    let mut i: libc::c_int = 0;
+    let mut n: libc::c_int = 0;
+    let mut m: libc::c_int = 0;
+    let mut cx: u_int = 0;
+    let mut bg: u_int = (*ictx).cell.cell.bg as u_int;
+    if 0 != (*ictx).flags & 1i32 {
+        return 0i32
+    } else {
+        log_debug(b"%s: \'%c\' \"%s\" \"%s\"\x00" as *const u8 as
+                      *const libc::c_char,
+                  (*::std::mem::transmute::<&[u8; 19],
+                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                  (*ictx).ch, (*ictx).interm_buf.as_mut_ptr(),
+                  (*ictx).param_buf.as_mut_ptr());
+        if input_split(ictx) != 0i32 {
+            return 0i32
+        } else {
+            entry =
+                bsearch(ictx as *const libc::c_void,
+                        input_csi_table.as_ptr() as *const libc::c_void,
+                        (::std::mem::size_of::<[input_table_entry; 34]>() as
+                             libc::c_ulong).wrapping_div(::std::mem::size_of::<input_table_entry>()
+                                                             as
+                                                             libc::c_ulong),
+                        ::std::mem::size_of::<input_table_entry>() as
+                            libc::c_ulong, Some(input_table_compare)) as
+                    *mut input_table_entry;
+            if entry == 0 as *mut libc::c_void as *mut input_table_entry {
+                log_debug(b"%s: unknown \'%c\'\x00" as *const u8 as
+                              *const libc::c_char,
+                          (*::std::mem::transmute::<&[u8; 19],
+                                                    &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                          (*ictx).ch);
+                return 0i32
+            } else {
+                match (*entry).type_0 {
+                    0 => {
+                        cx = (*s).cx;
+                        if cx >
+                               (*(*s).grid).sx.wrapping_sub(1i32 as
+                                                                libc::c_uint)
+                           {
+                            cx =
+                                (*(*s).grid).sx.wrapping_sub(1i32 as
+                                                                 libc::c_uint)
+                        }
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if !(n == 1i32.wrapping_neg()) {
+                            while cx > 0i32 as libc::c_uint &&
+                                      {
+                                          let fresh4 = n;
+                                          n = n - 1;
+                                          fresh4 > 0i32
+                                      } {
+                                loop  {
+                                    cx = cx.wrapping_sub(1);
+                                    if !(cx > 0i32 as libc::c_uint &&
+                                             0 ==
+                                                 *(*s).tabs.offset((cx >>
+                                                                        3i32)
+                                                                       as
+                                                                       isize)
+                                                     as libc::c_int &
+                                                     1i32 <<
+                                                         (cx &
+                                                              7i32 as
+                                                                  libc::c_uint))
+                                       {
+                                        break ;
+                                    }
+                                }
+                            }
+                            (*s).cx = cx
+                        }
+                    }
+                    3 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_cursorleft(sctx, n as u_int);
+                        }
+                    }
+                    4 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_cursordown(sctx, n as u_int);
+                        }
+                    }
+                    5 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_cursorright(sctx, n as u_int);
+                        }
+                    }
+                    6 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        m = input_get(ictx, 1i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() &&
+                               m != 1i32.wrapping_neg() {
+                            screen_write_cursormove(sctx, (m - 1i32) as u_int,
+                                                    (n - 1i32) as u_int);
+                        }
+                    }
+                    32 => { input_csi_dispatch_winops(ictx); }
+                    7 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_cursorup(sctx, n as u_int);
+                        }
+                    }
+                    1 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_carriagereturn(sctx);
+                            screen_write_cursordown(sctx, n as u_int);
+                        }
+                    }
+                    2 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_carriagereturn(sctx);
+                            screen_write_cursorup(sctx, n as u_int);
+                        }
+                    }
+                    8 => {
+                        match input_get(ictx, 0i32 as u_int, 0i32, 0i32) {
+                            -1 => { }
+                            0 => {
+                                current_block = 8529571547960882576;
+                                match current_block {
+                                    8529571547960882576 => {
+                                        input_reply(ictx,
+                                                    b"\x1b[?1;2c\x00" as
+                                                        *const u8 as
+                                                        *const libc::c_char);
+                                    }
+                                    _ => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                }
+                            }
+                            _ => {
+                                current_block = 13078237768377568798;
+                                match current_block {
+                                    8529571547960882576 => {
+                                        input_reply(ictx,
+                                                    b"\x1b[?1;2c\x00" as
+                                                        *const u8 as
+                                                        *const libc::c_char);
+                                    }
+                                    _ => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    9 => {
+                        match input_get(ictx, 0i32 as u_int, 0i32, 0i32) {
+                            -1 => { }
+                            0 => {
+                                current_block = 3510948148027343312;
+                                match current_block {
+                                    385272268267597458 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    _ => {
+                                        input_reply(ictx,
+                                                    b"\x1b[>84;0;0c\x00" as
+                                                        *const u8 as
+                                                        *const libc::c_char);
+                                    }
+                                }
+                            }
+                            _ => {
+                                current_block = 385272268267597458;
+                                match current_block {
+                                    385272268267597458 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    _ => {
+                                        input_reply(ictx,
+                                                    b"\x1b[>84;0;0c\x00" as
+                                                        *const u8 as
+                                                        *const libc::c_char);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    15 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_clearcharacter(sctx, n as u_int, bg);
+                        }
+                    }
+                    10 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_deletecharacter(sctx, n as u_int,
+                                                         bg);
+                        }
+                    }
+                    12 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        m =
+                            input_get(ictx, 1i32 as u_int, 1i32,
+                                      (*(*s).grid).sy as libc::c_int);
+                        if n != 1i32.wrapping_neg() &&
+                               m != 1i32.wrapping_neg() {
+                            screen_write_scrollregion(sctx,
+                                                      (n - 1i32) as u_int,
+                                                      (m - 1i32) as u_int);
+                        }
+                    }
+                    13 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_deleteline(sctx, n as u_int, bg);
+                        }
+                    }
+                    14 => {
+                        match input_get(ictx, 0i32 as u_int, 0i32, 0i32) {
+                            -1 => { }
+                            5 => {
+                                current_block = 10413195123155574014;
+                                match current_block {
+                                    3832674074691517558 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    5745853274343298612 => {
+                                        input_reply(ictx,
+                                                    b"\x1b[%u;%uR\x00" as
+                                                        *const u8 as
+                                                        *const libc::c_char,
+                                                    (*s).cy.wrapping_add(1i32
+                                                                             as
+                                                                             libc::c_uint),
+                                                    (*s).cx.wrapping_add(1i32
+                                                                             as
+                                                                             libc::c_uint));
+                                    }
+                                    _ => {
+                                        input_reply(ictx,
+                                                    b"\x1b[0n\x00" as
+                                                        *const u8 as
+                                                        *const libc::c_char);
+                                    }
+                                }
+                            }
+                            6 => {
+                                current_block = 5745853274343298612;
+                                match current_block {
+                                    3832674074691517558 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    5745853274343298612 => {
+                                        input_reply(ictx,
+                                                    b"\x1b[%u;%uR\x00" as
+                                                        *const u8 as
+                                                        *const libc::c_char,
+                                                    (*s).cy.wrapping_add(1i32
+                                                                             as
+                                                                             libc::c_uint),
+                                                    (*s).cx.wrapping_add(1i32
+                                                                             as
+                                                                             libc::c_uint));
+                                    }
+                                    _ => {
+                                        input_reply(ictx,
+                                                    b"\x1b[0n\x00" as
+                                                        *const u8 as
+                                                        *const libc::c_char);
+                                    }
+                                }
+                            }
+                            _ => {
+                                current_block = 3832674074691517558;
+                                match current_block {
+                                    3832674074691517558 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    5745853274343298612 => {
+                                        input_reply(ictx,
+                                                    b"\x1b[%u;%uR\x00" as
+                                                        *const u8 as
+                                                        *const libc::c_char,
+                                                    (*s).cy.wrapping_add(1i32
+                                                                             as
+                                                                             libc::c_uint),
+                                                    (*s).cx.wrapping_add(1i32
+                                                                             as
+                                                                             libc::c_uint));
+                                    }
+                                    _ => {
+                                        input_reply(ictx,
+                                                    b"\x1b[0n\x00" as
+                                                        *const u8 as
+                                                        *const libc::c_char);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    16 => {
+                        match input_get(ictx, 0i32 as u_int, 0i32, 0i32) {
+                            -1 => { }
+                            0 => {
+                                current_block = 10008258937388880952;
+                                match current_block {
+                                    6678751553009222334 => {
+                                        screen_write_clearscreen(sctx, bg);
+                                    }
+                                    9122380077187141842 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    13816553114893123275 => {
+                                        screen_write_clearstartofscreen(sctx,
+                                                                        bg);
+                                    }
+                                    10008258937388880952 => {
+                                        screen_write_clearendofscreen(sctx,
+                                                                      bg);
+                                    }
+                                    _ => {
+                                        if input_get(ictx, 1i32 as u_int,
+                                                     0i32, 0i32) == 0i32 {
+                                            screen_write_clearhistory(sctx);
+                                        }
+                                    }
+                                }
+                            }
+                            1 => {
+                                current_block = 13816553114893123275;
+                                match current_block {
+                                    6678751553009222334 => {
+                                        screen_write_clearscreen(sctx, bg);
+                                    }
+                                    9122380077187141842 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    13816553114893123275 => {
+                                        screen_write_clearstartofscreen(sctx,
+                                                                        bg);
+                                    }
+                                    10008258937388880952 => {
+                                        screen_write_clearendofscreen(sctx,
+                                                                      bg);
+                                    }
+                                    _ => {
+                                        if input_get(ictx, 1i32 as u_int,
+                                                     0i32, 0i32) == 0i32 {
+                                            screen_write_clearhistory(sctx);
+                                        }
+                                    }
+                                }
+                            }
+                            2 => {
+                                current_block = 6678751553009222334;
+                                match current_block {
+                                    6678751553009222334 => {
+                                        screen_write_clearscreen(sctx, bg);
+                                    }
+                                    9122380077187141842 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    13816553114893123275 => {
+                                        screen_write_clearstartofscreen(sctx,
+                                                                        bg);
+                                    }
+                                    10008258937388880952 => {
+                                        screen_write_clearendofscreen(sctx,
+                                                                      bg);
+                                    }
+                                    _ => {
+                                        if input_get(ictx, 1i32 as u_int,
+                                                     0i32, 0i32) == 0i32 {
+                                            screen_write_clearhistory(sctx);
+                                        }
+                                    }
+                                }
+                            }
+                            3 => {
+                                current_block = 14231706479693062455;
+                                match current_block {
+                                    6678751553009222334 => {
+                                        screen_write_clearscreen(sctx, bg);
+                                    }
+                                    9122380077187141842 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    13816553114893123275 => {
+                                        screen_write_clearstartofscreen(sctx,
+                                                                        bg);
+                                    }
+                                    10008258937388880952 => {
+                                        screen_write_clearendofscreen(sctx,
+                                                                      bg);
+                                    }
+                                    _ => {
+                                        if input_get(ictx, 1i32 as u_int,
+                                                     0i32, 0i32) == 0i32 {
+                                            screen_write_clearhistory(sctx);
+                                        }
+                                    }
+                                }
+                            }
+                            _ => {
+                                current_block = 9122380077187141842;
+                                match current_block {
+                                    6678751553009222334 => {
+                                        screen_write_clearscreen(sctx, bg);
+                                    }
+                                    9122380077187141842 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    13816553114893123275 => {
+                                        screen_write_clearstartofscreen(sctx,
+                                                                        bg);
+                                    }
+                                    10008258937388880952 => {
+                                        screen_write_clearendofscreen(sctx,
+                                                                      bg);
+                                    }
+                                    _ => {
+                                        if input_get(ictx, 1i32 as u_int,
+                                                     0i32, 0i32) == 0i32 {
+                                            screen_write_clearhistory(sctx);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    17 => {
+                        match input_get(ictx, 0i32 as u_int, 0i32, 0i32) {
+                            -1 => { }
+                            0 => {
+                                current_block = 10716407457819781312;
+                                match current_block {
+                                    10716407457819781312 => {
+                                        screen_write_clearendofline(sctx, bg);
+                                    }
+                                    14783241762875736529 => {
+                                        screen_write_clearstartofline(sctx,
+                                                                      bg);
+                                    }
+                                    15425117094043254452 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    _ => { screen_write_clearline(sctx, bg); }
+                                }
+                            }
+                            1 => {
+                                current_block = 14783241762875736529;
+                                match current_block {
+                                    10716407457819781312 => {
+                                        screen_write_clearendofline(sctx, bg);
+                                    }
+                                    14783241762875736529 => {
+                                        screen_write_clearstartofline(sctx,
+                                                                      bg);
+                                    }
+                                    15425117094043254452 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    _ => { screen_write_clearline(sctx, bg); }
+                                }
+                            }
+                            2 => {
+                                current_block = 7538114737374167612;
+                                match current_block {
+                                    10716407457819781312 => {
+                                        screen_write_clearendofline(sctx, bg);
+                                    }
+                                    14783241762875736529 => {
+                                        screen_write_clearstartofline(sctx,
+                                                                      bg);
+                                    }
+                                    15425117094043254452 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    _ => { screen_write_clearline(sctx, bg); }
+                                }
+                            }
+                            _ => {
+                                current_block = 15425117094043254452;
+                                match current_block {
+                                    10716407457819781312 => {
+                                        screen_write_clearendofline(sctx, bg);
+                                    }
+                                    14783241762875736529 => {
+                                        screen_write_clearstartofline(sctx,
+                                                                      bg);
+                                    }
+                                    15425117094043254452 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    _ => { screen_write_clearline(sctx, bg); }
+                                }
+                            }
+                        }
+                    }
+                    18 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_cursormove(sctx, (n - 1i32) as u_int,
+                                                    (*s).cy);
+                        }
+                    }
+                    19 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_insertcharacter(sctx, n as u_int,
+                                                         bg);
+                        }
+                    }
+                    20 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_insertline(sctx, n as u_int, bg);
+                        }
+                    }
+                    22 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if !(n == 1i32.wrapping_neg()) {
+                            if !((*ictx).last == 1i32.wrapping_neg()) {
+                                (*ictx).ch = (*ictx).last;
+                                i = 0i32;
+                                while i < n { input_print(ictx); i += 1 }
+                            }
+                        }
+                    }
+                    21 => {
+                        memcpy(&mut (*ictx).cell as *mut input_cell as
+                                   *mut libc::c_void,
+                               &mut (*ictx).old_cell as *mut input_cell as
+                                   *const libc::c_void,
+                               ::std::mem::size_of::<input_cell>() as
+                                   libc::c_ulong);
+                        screen_write_cursormove(sctx, (*ictx).old_cx,
+                                                (*ictx).old_cy);
+                    }
+                    23 => { input_csi_dispatch_rm(ictx); }
+                    24 => { input_csi_dispatch_rm_private(ictx); }
+                    25 => {
+                        memcpy(&mut (*ictx).old_cell as *mut input_cell as
+                                   *mut libc::c_void,
+                               &mut (*ictx).cell as *mut input_cell as
+                                   *const libc::c_void,
+                               ::std::mem::size_of::<input_cell>() as
+                                   libc::c_ulong);
+                        (*ictx).old_cx = (*s).cx;
+                        (*ictx).old_cy = (*s).cy
+                    }
+                    26 => { input_csi_dispatch_sgr(ictx); }
+                    27 => { input_csi_dispatch_sm(ictx); }
+                    28 => { input_csi_dispatch_sm_private(ictx); }
+                    29 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_scrollup(sctx, n as u_int, bg);
+                        }
+                    }
+                    30 => {
+                        match input_get(ictx, 0i32 as u_int, 0i32, 0i32) {
+                            -1 => { }
+                            0 => {
+                                current_block = 9427735788290307261;
+                                match current_block {
+                                    3375814408018429252 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    1924505913685386279 => {
+                                        loop  {
+                                            let mut _name: *mut bitstr_t =
+                                                (*s).tabs;
+                                            let mut _start: libc::c_int =
+                                                0i32;
+                                            let mut _stop: libc::c_int =
+                                                (*(*s).grid).sx.wrapping_sub(1i32
+                                                                                 as
+                                                                                 libc::c_uint)
+                                                    as libc::c_int;
+                                            while _start <= _stop {
+                                                let ref mut fresh6 =
+                                                    *_name.offset((_start >>
+                                                                       3i32)
+                                                                      as
+                                                                      isize);
+                                                *fresh6 =
+                                                    (*fresh6 as libc::c_int &
+                                                         !(1i32 <<
+                                                               (_start &
+                                                                    7i32))) as
+                                                        bitstr_t;
+                                                _start += 1
+                                            }
+                                            if !(0 != 0i32) { break ; }
+                                        }
+                                    }
+                                    _ => {
+                                        if (*s).cx < (*(*s).grid).sx {
+                                            let ref mut fresh5 =
+                                                *(*s).tabs.offset(((*s).cx >>
+                                                                       3i32)
+                                                                      as
+                                                                      isize);
+                                            *fresh5 =
+                                                (*fresh5 as libc::c_int &
+                                                     !(1i32 <<
+                                                           ((*s).cx &
+                                                                7i32 as
+                                                                    libc::c_uint)))
+                                                    as bitstr_t
+                                        }
+                                    }
+                                }
+                            }
+                            3 => {
+                                current_block = 1924505913685386279;
+                                match current_block {
+                                    3375814408018429252 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    1924505913685386279 => {
+                                        loop  {
+                                            let mut _name: *mut bitstr_t =
+                                                (*s).tabs;
+                                            let mut _start: libc::c_int =
+                                                0i32;
+                                            let mut _stop: libc::c_int =
+                                                (*(*s).grid).sx.wrapping_sub(1i32
+                                                                                 as
+                                                                                 libc::c_uint)
+                                                    as libc::c_int;
+                                            while _start <= _stop {
+                                                let ref mut fresh6 =
+                                                    *_name.offset((_start >>
+                                                                       3i32)
+                                                                      as
+                                                                      isize);
+                                                *fresh6 =
+                                                    (*fresh6 as libc::c_int &
+                                                         !(1i32 <<
+                                                               (_start &
+                                                                    7i32))) as
+                                                        bitstr_t;
+                                                _start += 1
+                                            }
+                                            if !(0 != 0i32) { break ; }
+                                        }
+                                    }
+                                    _ => {
+                                        if (*s).cx < (*(*s).grid).sx {
+                                            let ref mut fresh5 =
+                                                *(*s).tabs.offset(((*s).cx >>
+                                                                       3i32)
+                                                                      as
+                                                                      isize);
+                                            *fresh5 =
+                                                (*fresh5 as libc::c_int &
+                                                     !(1i32 <<
+                                                           ((*s).cx &
+                                                                7i32 as
+                                                                    libc::c_uint)))
+                                                    as bitstr_t
+                                        }
+                                    }
+                                }
+                            }
+                            _ => {
+                                current_block = 3375814408018429252;
+                                match current_block {
+                                    3375814408018429252 => {
+                                        log_debug(b"%s: unknown \'%c\'\x00" as
+                                                      *const u8 as
+                                                      *const libc::c_char,
+                                                  (*::std::mem::transmute::<&[u8; 19],
+                                                                            &[libc::c_char; 19]>(b"input_csi_dispatch\x00")).as_ptr(),
+                                                  (*ictx).ch);
+                                    }
+                                    1924505913685386279 => {
+                                        loop  {
+                                            let mut _name: *mut bitstr_t =
+                                                (*s).tabs;
+                                            let mut _start: libc::c_int =
+                                                0i32;
+                                            let mut _stop: libc::c_int =
+                                                (*(*s).grid).sx.wrapping_sub(1i32
+                                                                                 as
+                                                                                 libc::c_uint)
+                                                    as libc::c_int;
+                                            while _start <= _stop {
+                                                let ref mut fresh6 =
+                                                    *_name.offset((_start >>
+                                                                       3i32)
+                                                                      as
+                                                                      isize);
+                                                *fresh6 =
+                                                    (*fresh6 as libc::c_int &
+                                                         !(1i32 <<
+                                                               (_start &
+                                                                    7i32))) as
+                                                        bitstr_t;
+                                                _start += 1
+                                            }
+                                            if !(0 != 0i32) { break ; }
+                                        }
+                                    }
+                                    _ => {
+                                        if (*s).cx < (*(*s).grid).sx {
+                                            let ref mut fresh5 =
+                                                *(*s).tabs.offset(((*s).cx >>
+                                                                       3i32)
+                                                                      as
+                                                                      isize);
+                                            *fresh5 =
+                                                (*fresh5 as libc::c_int &
+                                                     !(1i32 <<
+                                                           ((*s).cx &
+                                                                7i32 as
+                                                                    libc::c_uint)))
+                                                    as bitstr_t
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    31 => {
+                        n = input_get(ictx, 0i32 as u_int, 1i32, 1i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_write_cursormove(sctx, (*s).cx,
+                                                    (n - 1i32) as u_int);
+                        }
+                    }
+                    11 => {
+                        n = input_get(ictx, 0i32 as u_int, 0i32, 0i32);
+                        if n != 1i32.wrapping_neg() {
+                            screen_set_cursor_style(s, n as u_int);
+                        }
+                    }
+                    _ => { }
+                }
+                (*ictx).last = 1i32.wrapping_neg();
+                return 0i32
+            }
+        }
+    };
 }
 static mut input_state_csi_enter: input_state =
     unsafe {

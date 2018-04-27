@@ -1,8 +1,10 @@
 extern crate libc;
 
+use arguments::args;
 use client::{client};
-use cmd::{mouse_event};
+use cmd::{cmd, mouse_event, cmd_entry, cmd_entry_flag};
 use cmd_find::{cmd_find_state};
+use cmd_list::{cmd_list, unnamed_6 as unnamed_29};
 use hooks::hooks;
 use proc_::evbuffer;
 use session::{session, session_group, session_groups};
@@ -292,19 +294,6 @@ pub struct unnamed_5 {
 pub type __off64_t = libc::c_long;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct cmd_entry {
-    pub name: *const libc::c_char,
-    pub alias: *const libc::c_char,
-    pub args: unnamed_9,
-    pub usage: *const libc::c_char,
-    pub source: cmd_entry_flag,
-    pub target: cmd_entry_flag,
-    pub flags: libc::c_int,
-    pub exec: Option<unsafe extern "C" fn(_: *mut cmd, _: *mut cmdq_item)
-                         -> cmd_retval>,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct key_tables {
     pub rbh_root: *mut key_table,
 }
@@ -370,12 +359,6 @@ pub struct unnamed_10 {
     pub rbe_right: *mut window_pane,
     pub rbe_parent: *mut window_pane,
     pub rbe_color: libc::c_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_list {
-    pub references: libc::c_int,
-    pub list: unnamed_29,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -749,25 +732,12 @@ pub struct unnamed_28 {
     pub tqe_next: *mut winlink,
     pub tqe_prev: *mut *mut winlink,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_29 {
-    pub tqh_first: *mut cmd,
-    pub tqh_last: *mut *mut cmd,
-}
 pub const CMD_FIND_WINDOW: cmd_find_type = 1;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_30 {
     pub tqh_first: *mut winlink,
     pub tqh_last: *mut *mut winlink,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_entry_flag {
-    pub flag: libc::c_char,
-    pub type_0: cmd_find_type,
-    pub flags: libc::c_int,
 }
 pub const CMDQ_COMMAND: cmdq_type = 0;
 #[derive ( Copy , Clone )]
@@ -946,23 +916,6 @@ pub struct unnamed_37 {
     pub rbe_right: *mut session_group,
     pub rbe_parent: *mut session_group,
     pub rbe_color: libc::c_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd {
-    pub entry: *const cmd_entry,
-    pub args: *mut args,
-    pub file: *mut libc::c_char,
-    pub line: u_int,
-    pub flags: libc::c_int,
-    pub qentry: unnamed_8,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct args {
-    pub tree: args_tree,
-    pub argc: libc::c_int,
-    pub argv: *mut *mut libc::c_char,
 }
 pub type __u_char = libc::c_uchar;
 pub type bufferevent_data_cb =

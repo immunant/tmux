@@ -1,23 +1,16 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use common::timeval;
+use options::options;
+use proc_::{event, event_add, event_del, event_initialized, event_set, event_once};
+use session::session;
+use window::{window, unnamed_11 as unnamed_36, winlink, winlinks};
+
 extern "C" {
     pub type evbuffer;
     pub type hooks;
     pub type event_base;
     pub type input_ctx;
-    pub type options;
     pub type _IO_FILE_plus;
     pub type screen_titles;
     pub type environ;
@@ -48,27 +41,6 @@ extern "C" {
     static mut sys_nerr: libc::c_int;
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
-    #[no_mangle]
-    fn event_add(ev: *mut event, timeout: *const timeval) -> libc::c_int;
-    #[no_mangle]
-    fn event_del(_: *mut event) -> libc::c_int;
-    #[no_mangle]
-    fn event_initialized(ev: *const event) -> libc::c_int;
-    #[no_mangle]
-    fn event_once(_: libc::c_int, _: libc::c_short,
-                  _:
-                      Option<unsafe extern "C" fn(_: libc::c_int,
-                                                  _: libc::c_short,
-                                                  _: *mut libc::c_void)
-                                 -> ()>, _: *mut libc::c_void,
-                  _: *const timeval) -> libc::c_int;
-    #[no_mangle]
-    fn event_set(_: *mut event, _: libc::c_int, _: libc::c_short,
-                 _:
-                     Option<unsafe extern "C" fn(_: libc::c_int,
-                                                 _: libc::c_short,
-                                                 _: *mut libc::c_void) -> ()>,
-                 _: *mut libc::c_void) -> ();
     #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]
@@ -188,26 +160,6 @@ pub const TTYC_KRIT7: tty_code_code = 173;
 pub const TTYC_KF48: tty_code_code = 110;
 pub const TTYC_KF6: tty_code_code = 123;
 pub const TTYC_IL: tty_code_code = 39;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct event {
-    pub ev_active_next: unnamed_23,
-    pub ev_next: unnamed_28,
-    pub ev_timeout_pos: unnamed_21,
-    pub ev_fd: libc::c_int,
-    pub ev_base: *mut event_base,
-    pub _ev: unnamed_5,
-    pub ev_events: libc::c_short,
-    pub ev_res: libc::c_short,
-    pub ev_flags: libc::c_short,
-    pub ev_pri: uint8_t,
-    pub ev_closure: uint8_t,
-    pub ev_timeout: timeval,
-    pub ev_callback: Option<unsafe extern "C" fn(_: libc::c_int,
-                                                 _: libc::c_short,
-                                                 _: *mut libc::c_void) -> ()>,
-    pub ev_arg: *mut libc::c_void,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed {
@@ -347,12 +299,6 @@ pub struct session_groups {
 pub const TTYC_KF60: tty_code_code = 124;
 pub const TTYC_KF7: tty_code_code = 128;
 pub const TTYC_KF34: tty_code_code = 95;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct timeval {
-    pub tv_sec: __time_t,
-    pub tv_usec: __suseconds_t,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct layout_cell {
@@ -726,20 +672,6 @@ pub struct unnamed_20 {
     pub rbe_parent: *mut winlink,
     pub rbe_color: libc::c_int,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct winlink {
-    pub idx: libc::c_int,
-    pub session: *mut session,
-    pub window: *mut window,
-    pub status_width: size_t,
-    pub status_cell: grid_cell,
-    pub status_text: *mut libc::c_char,
-    pub flags: libc::c_int,
-    pub entry: unnamed_20,
-    pub wentry: unnamed_27,
-    pub sentry: unnamed_14,
-}
 pub const TTYC_KIC5: tty_code_code = 141;
 pub const TTY_VT100: unnamed_10 = 0;
 pub const CMD_RETURN_WAIT: cmd_retval = 1;
@@ -864,11 +796,6 @@ pub struct cmd_entry_flag {
     pub flags: libc::c_int,
 }
 pub const TTYC_KF49: tty_code_code = 111;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct winlinks {
-    pub rbh_root: *mut winlink,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct key_binding {
@@ -1123,33 +1050,6 @@ pub const JOB_RUNNING: unnamed_34 = 0;
 pub const TTYC_ICH: tty_code_code = 37;
 pub const TTYC_KEND3: tty_code_code = 63;
 pub const TTYC_KLFT5: tty_code_code = 149;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub creation_time: timeval,
-    pub last_attached_time: timeval,
-    pub activity_time: timeval,
-    pub last_activity_time: timeval,
-    pub lock_timer: event,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub curw: *mut winlink,
-    pub lastw: winlink_stack,
-    pub windows: winlinks,
-    pub statusat: libc::c_int,
-    pub hooks: *mut hooks,
-    pub options: *mut options,
-    pub flags: libc::c_int,
-    pub attached: u_int,
-    pub tio: *mut termios,
-    pub environ: *mut environ,
-    pub references: libc::c_int,
-    pub gentry: unnamed_39,
-    pub entry: unnamed_22,
-}
 pub const TTYC_KF17: tty_code_code = 76;
 pub const TTYC_CUU1: tty_code_code = 21;
 pub const TTYC_KUP2: tty_code_code = 174;
@@ -1280,34 +1180,6 @@ pub type __suseconds_t = libc::c_long;
 pub const TTYC_RI: tty_code_code = 184;
 pub const TTYC_CS: tty_code_code = 11;
 pub const TTYC_U8: tty_code_code = 204;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub name_event: event,
-    pub name_time: timeval,
-    pub alerts_timer: event,
-    pub activity_time: timeval,
-    pub active: *mut window_pane,
-    pub last: *mut window_pane,
-    pub panes: window_panes,
-    pub lastlayout: libc::c_int,
-    pub layout_root: *mut layout_cell,
-    pub saved_layout_root: *mut layout_cell,
-    pub old_layout: *mut libc::c_char,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub flags: libc::c_int,
-    pub alerts_queued: libc::c_int,
-    pub alerts_entry: unnamed_17,
-    pub options: *mut options,
-    pub style: grid_cell,
-    pub active_style: grid_cell,
-    pub references: u_int,
-    pub winlinks: unnamed_36,
-    pub entry: unnamed_24,
-}
 pub const TTYC_DL: tty_code_code = 26;
 pub const TTYC_KF20: tty_code_code = 80;
 pub type cc_t = libc::c_uchar;
@@ -1338,12 +1210,6 @@ pub struct window_mode {
                                              _: *mut client, _: *mut session,
                                              _: *mut args,
                                              _: *mut mouse_event) -> ()>,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_36 {
-    pub tqh_first: *mut winlink,
-    pub tqh_last: *mut *mut winlink,
 }
 pub const TTYC_KPP: tty_code_code = 160;
 pub const TTYC_FSL: tty_code_code = 34;
@@ -1524,12 +1390,20 @@ unsafe extern "C" fn alerts_callback(mut fd: libc::c_int,
     }
     alerts_fired = 0i32;
 }
-static mut alerts_list: unnamed_11 =
+// Original:
+// static mut alerts_list: unnamed_11 =
+//     unsafe {
+//         unnamed_11{
+//             tqh_first: 0 as *const window as *mut window,
+//             tqh_last: &alerts_list.tqh_first as *const *mut window as *mut *mut window,
+//         }
+//     };
+pub static mut alerts_list: unnamed_11 =
     unsafe {
-        unnamed_11{tqh_first: 0 as *const window as *mut window,
-                   tqh_last:
-                       &alerts_list.tqh_first as *const *mut window as
-                           *mut *mut window,}
+        unnamed_11{
+            tqh_first: 0 as *const window as *mut window,
+            tqh_last: 0 as *const *mut window as *mut *mut window, // Actually initialized in main
+        }
     };
 unsafe extern "C" fn alerts_check_all(mut w: *mut window) -> libc::c_int {
     let mut alerts: libc::c_int = 0;

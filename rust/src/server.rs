@@ -4,7 +4,8 @@ use client::{client, clients};
 use session::session;
 use proc_::{tmuxproc, event_base, proc_send, proc_start, proc_loop, proc_set_signals, proc_clear_signals, proc_toggle_log};
 use notify::notify_client;
-use window::{window, windows, window_pane, window_panes, windows_RB_MINMAX, windows_RB_NEXT};
+use session::{sessions, sessions_RB_MINMAX, sessions_RB_NEXT, session_destroy};
+use window::{window, windows, windows_static, window_pane, window_panes, windows_RB_MINMAX, windows_RB_NEXT};
 
 extern "C" {
     pub type bufferevent_ops;
@@ -231,15 +232,9 @@ extern "C" {
     #[no_mangle]
     fn fatal(_: *const libc::c_char, ...) -> !;
     #[no_mangle]
-    fn sessions_RB_NEXT(_: *mut session) -> *mut session;
-    #[no_mangle]
-    fn sessions_RB_MINMAX(_: *mut sessions, _: libc::c_int) -> *mut session;
-    #[no_mangle]
     static mut session_groups: session_groups;
     #[no_mangle]
     static mut all_window_panes: window_pane_tree;
-    #[no_mangle]
-    static mut windows: windows;
     #[no_mangle]
     fn log_get_level() -> libc::c_int;
     #[no_mangle]
@@ -248,8 +243,6 @@ extern "C" {
     fn window_pane_destroy_ready(_: *mut window_pane) -> libc::c_int;
     #[no_mangle]
     fn log_debug(_: *const libc::c_char, ...) -> ();
-    #[no_mangle]
-    fn session_destroy(_: *mut session, _: *const libc::c_char) -> ();
     #[no_mangle]
     fn server_client_lost(_: *mut client) -> ();
     #[no_mangle]
@@ -1024,11 +1017,6 @@ pub struct mouse_event {
     pub sgr_b: u_int,
 }
 pub type cc_t = libc::c_uchar;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct sessions {
-    pub rbh_root: *mut session,
-}
 pub const MSG_SHUTDOWN: msgtype = 210;
 pub const OPTIONS_TABLE_CHOICE: options_table_type = 6;
 pub const SOCK_DGRAM: __socket_type = 2;
@@ -1338,7 +1326,7 @@ pub unsafe extern "C" fn server_start(mut client: *mut tmuxproc,
                         } else {
                             loop  {
                                 let ref mut fresh0 =
-                                    (*(&mut windows as
+                                    (*(&mut windows_static as
                                            *mut windows)).rbh_root;
                                 *fresh0 = 0 as *mut window;
                                 if !(0 != 0i32) { break ; }
@@ -1786,7 +1774,7 @@ unsafe extern "C" fn server_child_exited(mut pid: pid_t,
     let mut w1: *mut window = 0 as *mut window;
     let mut wp: *mut window_pane = 0 as *mut window_pane;
     let mut job: *mut job = 0 as *mut job;
-    w = windows_RB_MINMAX(&mut windows as *mut windows, 1i32.wrapping_neg());
+    w = windows_RB_MINMAX(&mut windows_static as *mut windows, 1i32.wrapping_neg());
     while w != 0 as *mut libc::c_void as *mut window &&
               { w1 = windows_RB_NEXT(w); 0 != 1i32 } {
         wp = (*(&mut (*w).panes as *mut window_panes)).tqh_first;
@@ -1830,7 +1818,7 @@ unsafe extern "C" fn server_child_stopped(mut pid: pid_t,
         return
     } else {
         w =
-            windows_RB_MINMAX(&mut windows as *mut windows,
+            windows_RB_MINMAX(&mut windows_static as *mut windows,
                               1i32.wrapping_neg());
         while w != 0 as *mut libc::c_void as *mut window {
             wp = (*(&mut (*w).panes as *mut window_panes)).tqh_first;

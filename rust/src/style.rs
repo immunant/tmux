@@ -2,7 +2,8 @@ extern crate libc;
 
 use attributes::{attributes_fromstring, attributes_tostring};
 use colour::{colour_fromstring, colour_tostring};
-use grid::{grid_cell, grid_cell_entry, utf8_data};
+use grid::{grid_cell, grid_cell_entry};
+use utf8::utf8_data;
 
 extern "C" {
     pub type hooks;

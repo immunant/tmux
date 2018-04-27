@@ -2,8 +2,9 @@ extern crate libc;
 
 use attributes::attributes_tostring;
 use colour::colour_tostring;
-use grid::{grid_cell, utf8_data, grid_default_cell};
+use grid::{grid_cell, grid_default_cell};
 use style::{style_parse, style_tostring};
+use utf8::utf8_data;
 use xmalloc::{xstrdup, xcalloc, xreallocarray};
 
 extern "C" {

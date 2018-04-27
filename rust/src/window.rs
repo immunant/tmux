@@ -1,23 +1,34 @@
 extern crate libc;
 
-use common::termios;
-use environ::environ;
+use alerts::alerts_queue;
+use cmd::{cmd_copy_argv, cmd_free_argv, cmd_stringify_argv};
+use common::{termios, timeval};
+use compat::fdforkpty::fdforkpty;
+use compat::closefrom::closefrom;
+use environ::{environ, environ_push};
+use grid::{grid_cell, grid_duplicate_lines, grid_default_cell};
 use session::{session, session_group, session_groups, sessions};
+use log::log_close;
+use style::{style_equal};
+use notify::{notify_pane, notify_window};
+use options::{options, options_create, options_get_number, options_get_style, options_set_number, options_free};
+use proc_::{event, proc_clear_signals, tmuxpeer, tmuxproc, event_add, event_del, event_set, event_initialized, event_base};
+use proc_::{unnamed_40 as unnamed, unnamed_13 as unnamed_39, unnamed as unnamed_0, unnamed_43 as unnamed_38, unnamed_14 as unnamed_27};
+use proc_::{unnamed_16 as unnamed_13, unnamed_32 as unnamed_20};
+use grid::{grid_destroy, grid_create, grid};
+use utf8::{utf8_data, utf8_stravis};
+use xmalloc::{xcalloc};
 
 extern "C" {
     pub type args_entry;
     pub type format_job_tree;
-    pub type options;
     pub type hooks;
     pub type options_entry;
     pub type input_ctx;
     pub type format_tree;
     pub type screen_titles;
-    pub type event_base;
     pub type _IO_FILE_plus;
     pub type tty_code;
-    pub type tmuxpeer;
-    pub type tmuxproc;
     pub type evbuffer;
     pub type bufferevent_ops;
     #[no_mangle]
@@ -119,19 +130,6 @@ extern "C" {
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
-    fn event_add(ev: *mut event, timeout: *const timeval) -> libc::c_int;
-    #[no_mangle]
-    fn event_del(_: *mut event) -> libc::c_int;
-    #[no_mangle]
-    fn event_initialized(ev: *const event) -> libc::c_int;
-    #[no_mangle]
-    fn event_set(_: *mut event, _: libc::c_int, _: libc::c_short,
-                 _:
-                     Option<unsafe extern "C" fn(_: libc::c_int,
-                                                 _: libc::c_short,
-                                                 _: *mut libc::c_void) -> ()>,
-                 _: *mut libc::c_void) -> ();
-    #[no_mangle]
     fn evbuffer_get_length(buf: *const evbuffer) -> size_t;
     #[no_mangle]
     fn evbuffer_pullup(buf: *mut evbuffer, size: ssize_t)
@@ -154,14 +152,9 @@ extern "C" {
                        errorcb: bufferevent_event_cb,
                        cbarg: *mut libc::c_void) -> *mut bufferevent;
     #[no_mangle]
-    fn closefrom(_: libc::c_int) -> ();
-    #[no_mangle]
     fn strtonum(_: *const libc::c_char, _: libc::c_longlong,
                 _: libc::c_longlong, _: *mut *const libc::c_char)
      -> libc::c_longlong;
-    #[no_mangle]
-    fn fdforkpty(_: libc::c_int, _: *mut libc::c_int, _: *mut libc::c_char,
-                 _: *mut termios, _: *mut winsize) -> pid_t;
     #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]
@@ -172,8 +165,6 @@ extern "C" {
     static mut BSDoptreset: libc::c_int;
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
-    #[no_mangle]
-    fn xcalloc(_: size_t, _: size_t) -> *mut libc::c_void;
     #[no_mangle]
     fn xreallocarray(_: *mut libc::c_void, _: size_t, _: size_t)
      -> *mut libc::c_void;
@@ -207,26 +198,7 @@ extern "C" {
     #[no_mangle]
     fn find_home() -> *const libc::c_char;
     #[no_mangle]
-    fn proc_clear_signals(_: *mut tmuxproc, _: libc::c_int) -> ();
-    #[no_mangle]
     static mut cfg_finished: libc::c_int;
-    #[no_mangle]
-    fn notify_window(_: *const libc::c_char, _: *mut window) -> ();
-    #[no_mangle]
-    fn notify_pane(_: *const libc::c_char, _: *mut window_pane) -> ();
-    #[no_mangle]
-    fn options_create(_: *mut options) -> *mut options;
-    #[no_mangle]
-    fn options_free(_: *mut options) -> ();
-    #[no_mangle]
-    fn options_get_number(_: *mut options, _: *const libc::c_char)
-     -> libc::c_longlong;
-    #[no_mangle]
-    fn options_get_style(_: *mut options, _: *const libc::c_char)
-     -> *const grid_cell;
-    #[no_mangle]
-    fn options_set_number(_: *mut options, _: *const libc::c_char,
-                          _: libc::c_longlong) -> *mut options_entry;
     #[no_mangle]
     static options_table: [options_table_entry; 0];
     #[no_mangle]
@@ -235,25 +207,13 @@ extern "C" {
     fn environ_set(_: *mut environ, _: *const libc::c_char,
                    _: *const libc::c_char, ...) -> ();
     #[no_mangle]
-    fn environ_push(_: *mut environ) -> ();
-    #[no_mangle]
     fn environ_log(_: *mut environ, _: *const libc::c_char, ...) -> ();
     #[no_mangle]
     static mut tty_terms: tty_terms;
     #[no_mangle]
-    fn cmd_copy_argv(_: libc::c_int, _: *mut *mut libc::c_char)
-     -> *mut *mut libc::c_char;
-    #[no_mangle]
-    fn cmd_free_argv(_: libc::c_int, _: *mut *mut libc::c_char) -> ();
-    #[no_mangle]
-    fn cmd_stringify_argv(_: libc::c_int, _: *mut *mut libc::c_char)
-     -> *mut libc::c_char;
-    #[no_mangle]
     static mut cmd_table: [*const cmd_entry; 0];
     #[no_mangle]
     static mut key_tables: key_tables;
-    #[no_mangle]
-    fn alerts_queue(_: *mut window, _: libc::c_int) -> ();
     #[no_mangle]
     static mut server_proc: *mut tmuxproc;
     #[no_mangle]
@@ -285,15 +245,6 @@ extern "C" {
     #[no_mangle]
     fn input_key(_: *mut window_pane, _: key_code, _: *mut mouse_event) -> ();
     #[no_mangle]
-    static grid_default_cell: grid_cell;
-    #[no_mangle]
-    fn grid_create(_: u_int, _: u_int, _: u_int) -> *mut grid;
-    #[no_mangle]
-    fn grid_destroy(_: *mut grid) -> ();
-    #[no_mangle]
-    fn grid_duplicate_lines(_: *mut grid, _: u_int, _: *mut grid, _: u_int,
-                            _: u_int) -> ();
-    #[no_mangle]
     fn grid_view_clear(_: *mut grid, _: u_int, _: u_int, _: u_int, _: u_int,
                        _: u_int) -> ();
     #[no_mangle]
@@ -319,18 +270,11 @@ extern "C" {
     #[no_mangle]
     fn fatal(_: *const libc::c_char, ...) -> !;
     #[no_mangle]
-    fn log_close() -> ();
-    #[no_mangle]
     fn layout_init(_: *mut window, _: *mut window_pane) -> ();
-    #[no_mangle]
-    fn style_equal(_: *const grid_cell, _: *const grid_cell) -> libc::c_int;
     #[no_mangle]
     fn layout_fix_panes(_: *mut window, _: u_int, _: u_int) -> ();
     #[no_mangle]
     fn layout_free(_: *mut window) -> ();
-    #[no_mangle]
-    fn utf8_stravis(_: *mut *mut libc::c_char, _: *const libc::c_char,
-                    _: libc::c_int) -> libc::c_int;
     #[no_mangle]
     static window_buffer_mode: window_mode;
     #[no_mangle]
@@ -350,12 +294,6 @@ extern "C" {
 }
 pub const KEYC_MOUSEUP1_PANE: unnamed_37 = 268435474;
 pub const CMD_RETURN_NORMAL: cmd_retval = 0;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
 pub const KEYC_F4: unnamed_37 = 268435529;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -384,12 +322,6 @@ pub struct tty_term {
     pub entry: unnamed_4,
 }
 pub const KEYC_KP_EIGHT: unnamed_37 = 268435553;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub union unnamed_0 {
-    ev_next_with_common_timeout: unnamed_38,
-    min_heap_idx: libc::c_int,
-}
 pub type u_int = __u_int;
 pub type tcflag_t = libc::c_uint;
 pub const TTY_VT102: unnamed_26 = 2;
@@ -459,26 +391,6 @@ pub struct grid_cell_entry {
 }
 pub const KEYC_TRIPLECLICK1_BORDER: unnamed_37 = 268435518;
 pub const OPTIONS_TABLE_SESSION: options_table_scope = 2;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct event {
-    pub ev_active_next: unnamed,
-    pub ev_next: unnamed_39,
-    pub ev_timeout_pos: unnamed_0,
-    pub ev_fd: libc::c_int,
-    pub ev_base: *mut event_base,
-    pub _ev: unnamed_27,
-    pub ev_events: libc::c_short,
-    pub ev_res: libc::c_short,
-    pub ev_flags: libc::c_short,
-    pub ev_pri: uint8_t,
-    pub ev_closure: uint8_t,
-    pub ev_timeout: timeval,
-    pub ev_callback: Option<unsafe extern "C" fn(_: libc::c_int,
-                                                 _: libc::c_short,
-                                                 _: *mut libc::c_void) -> ()>,
-    pub ev_arg: *mut libc::c_void,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_4 {
@@ -585,14 +497,6 @@ pub struct unnamed_9 {
 pub const KEYC_MOUSEDRAG1_PANE: unnamed_37 = 268435483;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct utf8_data {
-    pub data: [u_char; 9],
-    pub have: u_char,
-    pub size: u_char,
-    pub width: u_char,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct in6_addr {
     pub __in6_u: unnamed_6,
 }
@@ -695,12 +599,6 @@ pub struct clients {
     pub tqh_first: *mut client,
     pub tqh_last: *mut *mut client,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_13 {
-    pub ev_io_next: unnamed_20,
-    pub ev_timeout: timeval,
-}
 pub const OPTIONS_TABLE_NUMBER: options_table_type = 1;
 pub const KEYC_KP_ZERO: unnamed_37 = 268435563;
 pub type pid_t = __pid_t;
@@ -743,17 +641,6 @@ pub type speed_t = libc::c_uint;
 pub const KEYC_KP_SIX: unnamed_37 = 268435558;
 pub const KEYC_PASTE_START: unnamed_37 = 268435458;
 pub const KEYC_TRIPLECLICK2_BORDER: unnamed_37 = 268435521;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct grid {
-    pub flags: libc::c_int,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub hscrolled: u_int,
-    pub hsize: u_int,
-    pub hlimit: u_int,
-    pub linedata: *mut grid_line,
-}
 pub const KEYC_MOUSEDOWN1_PANE: unnamed_37 = 268435465;
 pub type u_short = __u_short;
 #[derive ( Copy , Clone )]
@@ -775,15 +662,6 @@ pub struct joblist {
 pub const OPTIONS_TABLE_KEY: options_table_type = 2;
 pub const KEYC_FOCUS_OUT: unnamed_37 = 268435457;
 pub const KEYC_TRIPLECLICK1_PANE: unnamed_37 = 268435516;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct grid_cell {
-    pub flags: u_char,
-    pub attr: u_short,
-    pub fg: libc::c_int,
-    pub bg: libc::c_int,
-    pub data: utf8_data,
-}
 pub const KEYC_DOUBLECLICK3_STATUS: unnamed_37 = 268435514;
 pub const KEYC_DOUBLECLICK2_BORDER: unnamed_37 = 268435512;
 #[derive ( Copy , Clone )]
@@ -930,12 +808,6 @@ pub const OPTIONS_TABLE_COLOUR: options_table_type = 3;
 pub const KEYC_PPAGE: unnamed_37 = 268435543;
 pub const KEYC_UP: unnamed_37 = 268435545;
 pub const KEYC_MOUSEUP2_STATUS: unnamed_37 = 268435478;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_20 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct client {
@@ -1086,12 +958,6 @@ pub struct args_tree {
     pub rbh_root: *mut args_entry,
 }
 pub const KEYC_WHEELUP_PANE: unnamed_37 = 268435501;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub union unnamed_27 {
-    ev_io: unnamed_13,
-    ev_signal: unnamed_9,
-}
 pub const KEYC_DOUBLECLICK2_PANE: unnamed_37 = 268435510;
 pub type __timezone_ptr_t = *mut timezone;
 pub type __u_int = libc::c_uint;
@@ -1383,12 +1249,6 @@ pub struct tty {
     pub key_timer: event,
     pub key_tree: *mut tty_key,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct timeval {
-    pub tv_sec: __time_t,
-    pub tv_usec: __suseconds_t,
-}
 pub const KEYC_MOUSEDOWN3_PANE: unnamed_37 = 268435471;
 pub const KEYC_MOUSEDOWN2_BORDER: unnamed_37 = 268435470;
 #[derive ( Copy , Clone )]
@@ -1410,18 +1270,6 @@ pub struct _IO_marker {
     pub _pos: libc::c_int,
 }
 pub type u_char = __u_char;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_38 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_39 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
 pub const KEYC_KP_PLUS: unnamed_37 = 268435555;
 pub const KEYC_TRIPLECLICK1_STATUS: unnamed_37 = 268435517;
 pub const KEYC_DOUBLECLICK1_PANE: unnamed_37 = 268435507;

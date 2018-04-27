@@ -1,4 +1,7 @@
 extern crate libc;
+
+use utf8::utf8_data;
+
 extern "C" {
     pub type environ;
     pub type options;
@@ -732,14 +735,6 @@ pub struct unnamed_21 {
     pub tqe_prev: *mut *mut session,
 }
 pub const OPTIONS_TABLE_WINDOW: options_table_scope = 3;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct utf8_data {
-    pub data: [u_char; 9],
-    pub have: u_char,
-    pub size: u_char,
-    pub width: u_char,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_22 {

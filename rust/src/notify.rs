@@ -1,8 +1,12 @@
 extern crate libc;
 
 use client::{client, clients};
+use cmd::{mouse_event};
+use cmd_list::{cmd_list};
+use cmd_find::{cmd_find_state};
+use cmd_queue::{cmdq_append, cmdq_get_callback1, cmdq_insert_after, cmdq_get_command, cmdq_item, cmdq_list};
 use session::session;
-use window::window;
+use window::{window, window_pane, winlink};
 
 extern "C" {
     pub type screen_titles;
@@ -90,22 +94,14 @@ extern "C" {
     #[no_mangle]
     static mut clients: clients;
     #[no_mangle]
-    fn cmdq_append(_: *mut client, _: *mut cmdq_item) -> ();
+    fn cmdq_format(_: *mut cmdq_item, _: *const libc::c_char,
+                   _: *const libc::c_char, ...) -> ();
     #[no_mangle]
     fn session_remove_ref(_: *mut session, _: *const libc::c_char) -> ();
     #[no_mangle]
     fn window_remove_ref(_: *mut window, _: *const libc::c_char) -> ();
     #[no_mangle]
     fn server_client_unref(_: *mut client) -> ();
-    #[no_mangle]
-    fn cmdq_insert_after(_: *mut cmdq_item, _: *mut cmdq_item) -> ();
-    #[no_mangle]
-    fn cmdq_format(_: *mut cmdq_item, _: *const libc::c_char,
-                   _: *const libc::c_char, ...) -> ();
-    #[no_mangle]
-    fn cmdq_get_command(_: *mut cmd_list, _: *mut cmd_find_state,
-                        _: *mut mouse_event, _: libc::c_int)
-     -> *mut cmdq_item;
     #[no_mangle]
     fn log_debug(_: *const libc::c_char, ...) -> ();
     #[no_mangle]
@@ -142,9 +138,6 @@ extern "C" {
     fn control_notify_window_layout_changed(_: *mut window) -> ();
     #[no_mangle]
     fn control_notify_pane_mode_changed(_: libc::c_int) -> ();
-    #[no_mangle]
-    fn cmdq_get_callback1(_: *const libc::c_char, _: cmdq_cb,
-                          _: *mut libc::c_void) -> *mut cmdq_item;
     #[no_mangle]
     fn session_add_ref(_: *mut session, _: *const libc::c_char) -> ();
     #[no_mangle]
@@ -482,34 +475,7 @@ pub struct cmdq_shared {
     pub current: cmd_find_state,
 }
 pub const OPTIONS_TABLE_ATTRIBUTES: options_table_type = 4;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmdq_item {
-    pub name: *const libc::c_char,
-    pub queue: *mut cmdq_list,
-    pub next: *mut cmdq_item,
-    pub client: *mut client,
-    pub type_0: cmdq_type,
-    pub group: u_int,
-    pub number: u_int,
-    pub time: time_t,
-    pub flags: libc::c_int,
-    pub shared: *mut cmdq_shared,
-    pub source: cmd_find_state,
-    pub target: cmd_find_state,
-    pub cmdlist: *mut cmd_list,
-    pub cmd: *mut cmd,
-    pub cb: cmdq_cb,
-    pub data: *mut libc::c_void,
-    pub entry: unnamed_35,
-}
 pub const CMD_FIND_WINDOW: cmd_find_type = 1;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmdq_list {
-    pub tqh_first: *mut cmdq_item,
-    pub tqh_last: *mut *mut cmdq_item,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub union unnamed_11 {
@@ -534,54 +500,6 @@ pub struct winlink_stack {
     pub tqh_last: *mut *mut winlink,
 }
 pub const JOB_CLOSED: unnamed_10 = 2;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_pane {
-    pub id: u_int,
-    pub active_point: u_int,
-    pub window: *mut window,
-    pub layout_cell: *mut layout_cell,
-    pub saved_layout_cell: *mut layout_cell,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub osx: u_int,
-    pub osy: u_int,
-    pub xoff: u_int,
-    pub yoff: u_int,
-    pub flags: libc::c_int,
-    pub argc: libc::c_int,
-    pub argv: *mut *mut libc::c_char,
-    pub shell: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub pid: pid_t,
-    pub tty: [libc::c_char; 32],
-    pub status: libc::c_int,
-    pub fd: libc::c_int,
-    pub event: *mut bufferevent,
-    pub resize_timer: event,
-    pub ictx: *mut input_ctx,
-    pub colgc: grid_cell,
-    pub palette: *mut libc::c_int,
-    pub pipe_fd: libc::c_int,
-    pub pipe_event: *mut bufferevent,
-    pub pipe_off: size_t,
-    pub screen: *mut screen,
-    pub base: screen,
-    pub status_screen: screen,
-    pub status_size: size_t,
-    pub saved_cx: u_int,
-    pub saved_cy: u_int,
-    pub saved_grid: *mut grid,
-    pub saved_cell: grid_cell,
-    pub mode: *const window_mode,
-    pub modedata: *mut libc::c_void,
-    pub modetimer: event,
-    pub modelast: time_t,
-    pub modeprefix: u_int,
-    pub searchstr: *mut libc::c_char,
-    pub entry: unnamed_14,
-    pub tree_entry: unnamed_29,
-}
 pub type options_table_scope = libc::c_uint;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -780,17 +698,6 @@ pub struct grid_line {
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct cmd_find_state {
-    pub flags: libc::c_int,
-    pub current: *mut cmd_find_state,
-    pub s: *mut session,
-    pub wl: *mut winlink,
-    pub w: *mut window,
-    pub wp: *mut window_pane,
-    pub idx: libc::c_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct unnamed_24 {
     pub ev_io_next: unnamed_34,
     pub ev_timeout: timeval,
@@ -903,20 +810,6 @@ pub struct cmd_entry_flag {
     pub flags: libc::c_int,
 }
 pub type time_t = __time_t;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct winlink {
-    pub idx: libc::c_int,
-    pub session: *mut session,
-    pub window: *mut window,
-    pub status_width: size_t,
-    pub status_cell: grid_cell,
-    pub status_text: *mut libc::c_char,
-    pub flags: libc::c_int,
-    pub entry: unnamed_8,
-    pub wentry: unnamed_39,
-    pub sentry: unnamed_9,
-}
 pub const LINE_SEL_RIGHT_LEFT: unnamed_30 = 2;
 pub const LINE_SEL_NONE: unnamed_30 = 0;
 pub type prompt_input_cb =
@@ -1037,12 +930,6 @@ pub struct bufferevent {
 }
 pub const TTY_VT100: unnamed_36 = 0;
 pub const TTY_VT220: unnamed_36 = 3;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_list {
-    pub references: libc::c_int,
-    pub list: unnamed_37,
-}
 pub type unnamed_36 = libc::c_uint;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -1092,24 +979,6 @@ pub struct unnamed_37 {
 #[repr ( C )]
 pub struct sessions {
     pub rbh_root: *mut session,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct mouse_event {
-    pub valid: libc::c_int,
-    pub key: key_code,
-    pub statusat: libc::c_int,
-    pub x: u_int,
-    pub y: u_int,
-    pub b: u_int,
-    pub lx: u_int,
-    pub ly: u_int,
-    pub lb: u_int,
-    pub s: libc::c_int,
-    pub w: libc::c_int,
-    pub wp: libc::c_int,
-    pub sgr_type: u_int,
-    pub sgr_b: u_int,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]

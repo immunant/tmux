@@ -94,8 +94,6 @@ extern "C" {
     #[no_mangle]
     static grid_default_cell: grid_cell;
     #[no_mangle]
-    static mut windows: windows;
-    #[no_mangle]
     static mut all_window_panes: window_pane_tree;
     #[no_mangle]
     static window_buffer_mode: window_mode;

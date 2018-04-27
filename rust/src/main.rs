@@ -15,6 +15,7 @@
 #![allow(private_no_mangle_statics)]
 extern crate libc;
 
+mod alerts;
 mod arguments;
 mod attributes;
 mod cfg;
@@ -32,6 +33,7 @@ mod compat;
 mod environ;
 mod grid;
 mod hooks;
+// mod input;
 mod log;
 mod notify;
 mod options;
@@ -39,10 +41,13 @@ mod osdep;
 mod proc_;
 mod session;
 mod server;
+mod server_fn;
 mod style;
+mod utf8;
 mod window;
 mod xmalloc;
 
+use alerts::{alerts_list};
 use cfg::set_cfg_file;
 use client::{client_main, clients};
 use cmd_queue::{global_queue, cmdq_item};
@@ -1416,6 +1421,7 @@ unsafe extern "C" fn checkshell(mut shell: *const libc::c_char)
 unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char)
  -> libc::c_int {
     // Initialize self referential global statics when starting
+    alerts_list.tqh_last = &alerts_list.tqh_first as *const *mut window::window as *mut *mut window::window;
     global_queue.tqh_last = &global_queue.tqh_first as *const *mut cmdq_item as *mut *mut cmdq_item;
 
     let mut current_block: u64;

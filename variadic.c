@@ -9,10 +9,13 @@
 #include "variadic.h"
 
 // Structure declarations
-struct format_entry;
 struct options;
 struct options_parent_table_entry;
 struct options_table_entry;
+struct environ;
+struct environ_entry;
+struct format_entry_tree;
+struct format_entry;
 
 // Extern functions
 extern int xvasprintf(char **, const char *, va_list) __attribute__((__nonnull__ (2)));
@@ -21,6 +24,10 @@ extern struct options_entry *options_add(struct options *oo, const char *name);
 extern struct options_entry *options_default(struct options *oo, const struct options_table_entry *oe);
 extern const struct options_table_entry *options_parent_table_entry(struct options *oo, const char *s);
 extern long long options_get_number(struct options *oo, const char *name);
+extern struct environ_entry *environ_RB_INSERT(struct environ*, struct environ_entry*);
+extern struct environ_entry *environ_RB_NEXT(struct environ_entry*);
+extern struct environ_entry *environ_RB_MINMAX(struct environ*, int);
+extern struct format_entry *format_entry_tree_RB_INSERT(struct format_entry_tree*, struct format_entry*);
 
 extern char **cfg_causes;
 extern u_int cfg_ncauses;

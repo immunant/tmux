@@ -1,17 +1,7 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use cmd::{args, cmd};
+
 extern "C" {
     pub type tmuxproc;
     pub type bufferevent_ops;
@@ -261,13 +251,6 @@ pub struct unnamed_4 {
     pub tqe_next: *mut event,
     pub tqe_prev: *mut *mut event,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct args {
-    pub tree: args_tree,
-    pub argc: libc::c_int,
-    pub argv: *mut *mut libc::c_char,
-}
 pub type options_table_scope = libc::c_uint;
 pub type _IO_lock_t = ();
 #[derive ( Copy , Clone )]
@@ -399,16 +382,6 @@ pub struct window {
 pub const JOB_RUNNING: unnamed_35 = 0;
 pub const OPTIONS_TABLE_ARRAY: options_table_type = 8;
 pub const LAYOUT_WINDOWPANE: layout_type = 2;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd {
-    pub entry: *const cmd_entry,
-    pub args: *mut args,
-    pub file: *mut libc::c_char,
-    pub line: u_int,
-    pub flags: libc::c_int,
-    pub qentry: unnamed_25,
-}
 pub type prompt_free_cb =
     Option<unsafe extern "C" fn(_: *mut libc::c_void) -> ()>;
 #[derive ( Copy , Clone )]

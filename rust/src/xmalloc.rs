@@ -1,4 +1,7 @@
 extern crate libc;
+
+use compat::reallocarray::reallocarray;
+
 extern "C" {
     pub type _IO_FILE_plus;
     pub type hooks;
@@ -54,9 +57,6 @@ extern "C" {
     #[no_mangle]
     fn vasprintf(_: *mut *mut libc::c_char, _: *const libc::c_char,
                  _: *mut __va_list_tag) -> libc::c_int;
-    #[no_mangle]
-    fn reallocarray(_: *mut libc::c_void, _: size_t, _: size_t)
-     -> *mut libc::c_void;
     #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]

@@ -1,7 +1,13 @@
 extern crate libc;
 
-use osdep::event_base;
 use compat::imsg::imsg;
+use compat::closefrom::closefrom;
+use compat::strlcpy::strlcpy;
+use cmd::{cmd, cmd_pack_argv};
+use cmd_list::{unnamed_6 as unnamed_10, cmd_list, cmd_list_free, cmd_list_parse};
+use environ::{environ, environ_free};
+use options::{self, options_free, options_table_entry};
+use osdep::event_base;
 use proc_::{proc_send, proc_exit, proc_loop, proc_start, proc_set_signals, proc_clear_signals, proc_add_peer, tmuxpeer, tmuxproc};
 use xmalloc::xmalloc;
 
@@ -9,8 +15,6 @@ extern "C" {
     pub type _IO_FILE_plus;
     pub type bufferevent_ops;
     pub type screen_titles;
-    pub type options;
-    pub type environ;
     pub type hooks;
     pub type args_entry;
     pub type format_job_tree;
@@ -153,11 +157,6 @@ extern "C" {
     #[no_mangle]
     fn cfmakeraw(__termios_p: *mut termios) -> ();
     #[no_mangle]
-    fn closefrom(_: libc::c_int) -> ();
-    #[no_mangle]
-    fn strlcpy(_: *mut libc::c_char, _: *const libc::c_char, _: libc::c_ulong)
-     -> libc::c_ulong;
-    #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]
     static mut BSDoptind: libc::c_int;
@@ -180,11 +179,11 @@ extern "C" {
     #[no_mangle]
     static mut global_hooks: *mut hooks;
     #[no_mangle]
-    static mut global_options: *mut options;
+    static mut global_options: *mut options::options;
     #[no_mangle]
-    static mut global_s_options: *mut options;
+    static mut global_s_options: *mut options::options;
     #[no_mangle]
-    static mut global_w_options: *mut options;
+    static mut global_w_options: *mut options::options;
     #[no_mangle]
     static mut global_environ: *mut environ;
     #[no_mangle]
@@ -202,26 +201,13 @@ extern "C" {
     #[no_mangle]
     static mut cfg_finished: libc::c_int;
     #[no_mangle]
-    fn options_free(_: *mut options) -> ();
-    #[no_mangle]
     static options_table: [options_table_entry; 0];
     #[no_mangle]
     static mut all_jobs: joblist;
     #[no_mangle]
-    fn environ_free(_: *mut environ) -> ();
-    #[no_mangle]
     static mut tty_terms: tty_terms;
     #[no_mangle]
-    fn cmd_pack_argv(_: libc::c_int, _: *mut *mut libc::c_char,
-                     _: *mut libc::c_char, _: size_t) -> libc::c_int;
-    #[no_mangle]
     static mut cmd_table: [*const cmd_entry; 0];
-    #[no_mangle]
-    fn cmd_list_parse(_: libc::c_int, _: *mut *mut libc::c_char,
-                      _: *const libc::c_char, _: u_int,
-                      _: *mut *mut libc::c_char) -> *mut cmd_list;
-    #[no_mangle]
-    fn cmd_list_free(_: *mut cmd_list) -> ();
     #[no_mangle]
     fn fatal(_: *const libc::c_char, ...) -> !;
     #[no_mangle]
@@ -313,7 +299,7 @@ pub struct session {
     pub windows: winlinks,
     pub statusat: libc::c_int,
     pub hooks: *mut hooks,
-    pub options: *mut options,
+    pub options: *mut options::options,
     pub flags: libc::c_int,
     pub attached: u_int,
     pub tio: *mut termios,
@@ -562,12 +548,6 @@ pub struct termios {
     pub c_ispeed: speed_t,
     pub c_ospeed: speed_t,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_10 {
-    pub tqh_first: *mut cmd,
-    pub tqh_last: *mut *mut cmd,
-}
 pub const TTY_VT100: unnamed_16 = 0;
 pub type unnamed_11 = libc::c_uint;
 #[derive ( Copy , Clone )]
@@ -642,7 +622,7 @@ pub type uint32_t = libc::c_uint;
 pub const CLIENT_EXIT_DETACHED_HUP: unnamed_11 = 2;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct window {
+pub struct window { // REVIEW: Probably goes in window.rs
     pub id: u_int,
     pub name: *mut libc::c_char,
     pub name_event: event,
@@ -661,7 +641,7 @@ pub struct window {
     pub flags: libc::c_int,
     pub alerts_queued: libc::c_int,
     pub alerts_entry: unnamed_1,
-    pub options: *mut options,
+    pub options: *mut options::options,
     pub style: grid_cell,
     pub active_style: grid_cell,
     pub references: u_int,
@@ -997,28 +977,12 @@ pub const LINE_SEL_NONE: unnamed_31 = 0;
 pub const CMD_RETURN_NORMAL: cmd_retval = 0;
 pub type cmd_retval = libc::c_int;
 pub const MSG_IDENTIFY_ENVIRON: msgtype = 105;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd {
-    pub entry: *const cmd_entry,
-    pub args: *mut args,
-    pub file: *mut libc::c_char,
-    pub line: u_int,
-    pub flags: libc::c_int,
-    pub qentry: unnamed_43,
-}
 pub const LAYOUT_TOPBOTTOM: layout_type = 1;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct msg_stdin_data {
     pub size: ssize_t,
     pub data: [libc::c_char; 8192],
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_list {
-    pub references: libc::c_int,
-    pub list: unnamed_10,
 }
 pub const PROMPT_COMMAND: unnamed_41 = 1;
 pub const SOCK_RDM: __socket_type = 4;
@@ -1216,20 +1180,6 @@ pub const OPTIONS_TABLE_NUMBER: options_table_type = 1;
 pub union sigval {
     sival_int: libc::c_int,
     sival_ptr: *mut libc::c_void,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct options_table_entry {
-    pub name: *const libc::c_char,
-    pub type_0: options_table_type,
-    pub scope: options_table_scope,
-    pub minimum: u_int,
-    pub maximum: u_int,
-    pub choices: *mut *const libc::c_char,
-    pub default_str: *const libc::c_char,
-    pub default_num: libc::c_longlong,
-    pub separator: *const libc::c_char,
-    pub style: *const libc::c_char,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]

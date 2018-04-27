@@ -1,6 +1,7 @@
 extern crate libc;
 
-use compat::imsg::{imsg, imsg_hdr, imsgbuf, msgbuf, imsg_free, imsg_clear, imsg_init, imsg_get, imsg_compose};
+use compat::imsg::{imsg, imsgbuf, imsg_hdr, imsg_free, imsg_clear, imsg_init, imsg_get, imsg_compose};
+use compat::imsg_buffer::msgbuf;
 use log::{log_open, log_toggle};
 use xmalloc::xcalloc;
 
@@ -90,7 +91,7 @@ extern "C" {
     #[no_mangle]
     static mut optopt: libc::c_int;
     #[no_mangle]
-    fn msgbuf_write(_: *mut msgbuf) -> libc::c_int;
+    fn msgbuf_write(_: *mut msgbuf) -> libc::c_int; // FIXME: Missing in translation
     #[no_mangle]
     fn setproctitle(_: *const libc::c_char, ...) -> ();
     #[no_mangle]

@@ -1,17 +1,9 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use style::style_parse;
+use grid::{grid_cell, utf8_data};
+use xmalloc::{xstrdup, xcalloc, xreallocarray};
+
 extern "C" {
     pub type evbuffer;
     pub type input_ctx;
@@ -85,13 +77,6 @@ extern "C" {
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
     #[no_mangle]
-    fn xcalloc(_: size_t, _: size_t) -> *mut libc::c_void;
-    #[no_mangle]
-    fn xreallocarray(_: *mut libc::c_void, _: size_t, _: size_t)
-     -> *mut libc::c_void;
-    #[no_mangle]
-    fn xstrdup(_: *const libc::c_char) -> *mut libc::c_char;
-    #[no_mangle]
     fn xasprintf(_: *mut *mut libc::c_char, _: *const libc::c_char, ...)
      -> libc::c_int;
     #[no_mangle]
@@ -121,9 +106,6 @@ extern "C" {
     static mut cfg_finished: libc::c_int;
     #[no_mangle]
     static grid_default_cell: grid_cell;
-    #[no_mangle]
-    fn style_parse(_: *const grid_cell, _: *mut grid_cell,
-                   _: *const libc::c_char) -> libc::c_int;
     #[no_mangle]
     fn attributes_tostring(_: libc::c_int) -> *const libc::c_char;
     #[no_mangle]
@@ -581,14 +563,6 @@ pub struct cmd_find_state {
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct utf8_data {
-    pub data: [u_char; 9],
-    pub have: u_char,
-    pub size: u_char,
-    pub width: u_char,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct unnamed_12 {
     pub tqe_next: *mut winlink,
     pub tqe_prev: *mut *mut winlink,
@@ -722,15 +696,6 @@ pub struct key_table {
 }
 pub const CMD_FIND_PANE: cmd_find_type = 0;
 pub const OPTIONS_TABLE_STYLE: options_table_type = 7;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct grid_cell {
-    pub flags: u_char,
-    pub attr: u_short,
-    pub fg: libc::c_int,
-    pub bg: libc::c_int,
-    pub data: utf8_data,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub union unnamed_19 {

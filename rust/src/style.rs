@@ -1,17 +1,7 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
+
+use grid::{grid_cell, grid_cell_entry, utf8_data};
+
 extern "C" {
     pub type hooks;
     pub type _IO_FILE_plus;
@@ -520,12 +510,6 @@ pub struct cmd_list {
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct grid_cell_entry {
-    pub flags: u_char,
-    pub unnamed: unnamed_18,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub union unnamed_8 {
     ev_next_with_common_timeout: unnamed_34,
     min_heap_idx: libc::c_int,
@@ -570,14 +554,6 @@ pub struct cmd_entry_flag {
     pub flag: libc::c_char,
     pub type_0: cmd_find_type,
     pub flags: libc::c_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct utf8_data {
-    pub data: [u_char; 9],
-    pub have: u_char,
-    pub size: u_char,
-    pub width: u_char,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -1082,15 +1058,6 @@ pub struct unnamed_36 {
 }
 pub type unnamed_37 = libc::c_uint;
 pub type tcflag_t = libc::c_uint;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct grid_cell {
-    pub flags: u_char,
-    pub attr: u_short,
-    pub fg: libc::c_int,
-    pub bg: libc::c_int,
-    pub data: utf8_data,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct cmdq_item {

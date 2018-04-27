@@ -1,6 +1,7 @@
 extern crate libc;
 
 use compat::freezero::freezero;
+use compat::imsg_buffer::{msgbuf, msgbuf_init, msgbuf_clear, ibuf, ibuf_add, ibuf_free, ibuf_close, ibuf_dynamic};
 
 extern "C" {
     pub type _IO_FILE_plus;
@@ -60,20 +61,7 @@ extern "C" {
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
-    fn ibuf_dynamic(_: size_t, _: size_t) -> *mut ibuf;
-    #[no_mangle]
-    fn ibuf_add(_: *mut ibuf, _: *const libc::c_void, _: size_t)
-     -> libc::c_int;
-    #[no_mangle]
-    fn ibuf_close(_: *mut msgbuf, _: *mut ibuf) -> ();
-    #[no_mangle]
-    fn ibuf_free(_: *mut ibuf) -> ();
-    #[no_mangle]
-    fn msgbuf_init(_: *mut msgbuf) -> ();
-    #[no_mangle]
-    fn msgbuf_clear(_: *mut msgbuf) -> ();
-    #[no_mangle]
-    fn msgbuf_write(_: *mut msgbuf) -> libc::c_int;
+    fn msgbuf_write(_: *mut msgbuf) -> libc::c_int; // FIXME: not being translated
     #[no_mangle]
     fn getdtablecount() -> libc::c_int;
     #[no_mangle]
@@ -88,17 +76,6 @@ extern "C" {
     static mut BSDoptarg: *mut libc::c_char;
 }
 pub type __u_char = libc::c_uchar;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct ibuf {
-    pub entry: unnamed_0,
-    pub buf: *mut u_char,
-    pub size: size_t,
-    pub max: size_t,
-    pub wpos: size_t,
-    pub rpos: size_t,
-    pub fd: libc::c_int,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct msghdr {
@@ -158,13 +135,6 @@ pub struct imsg_hdr {
     pub pid: uint32_t,
 }
 pub type u_char = __u_char;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct msgbuf {
-    pub bufs: unnamed,
-    pub queued: uint32_t,
-    pub fd: libc::c_int,
-}
 pub type unnamed_1 = libc::c_uint;
 pub type __ssize_t = libc::c_long;
 pub type socklen_t = __socklen_t;

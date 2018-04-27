@@ -11,37 +11,70 @@
 #![allow ( dead_code )]
 #![allow ( mutable_transmutes )]
 #![allow ( unused_mut )]
-
 extern crate libc;
 
+#[allow(private_no_mangle_fns)]
 mod cfg;
+#[allow(private_no_mangle_fns)]
 mod client;
+#[allow(private_no_mangle_fns)]
+mod cmd;
+#[allow(private_no_mangle_fns)]
+mod cmd_find;
+#[allow(private_no_mangle_fns)]
+mod cmd_list;
+#[allow(private_no_mangle_fns)]
 mod compat;
+#[allow(private_no_mangle_fns)]
+mod environ;
+#[allow(private_no_mangle_fns)]
+mod grid;
+#[allow(private_no_mangle_fns)]
+mod hooks;
+#[allow(private_no_mangle_fns)]
 mod log;
-mod proc_;
+#[allow(private_no_mangle_fns)]
+mod options;
+#[allow(private_no_mangle_fns)]
 mod osdep;
+#[allow(private_no_mangle_fns)]
+mod proc_;
+#[allow(private_no_mangle_fns)]
+mod style;
+#[allow(private_no_mangle_fns)]
+mod window;
+#[allow(private_no_mangle_fns)]
 mod xmalloc;
 
 use cfg::set_cfg_file;
 use client::{client_main, clients, cmdq_item};
 use compat::getprogname::getprogname;
+use compat::fdforkpty::getptmfd;
+use environ::{environ_create, environ_put};
+use hooks::{session, sessions, hooks_create};
 use log::log_add_level;
+use options::{options_create, options_default, options_set_number, options_table_entry};
 use osdep::{event_base, osdep_event_init};
 
 extern "C" {
     pub type _IO_FILE_plus;
-    pub type hooks;
     pub type input_ctx;
     pub type evbuffer;
     pub type format_job_tree;
-    pub type environ;
     pub type options_entry;
     pub type format_tree;
     pub type args_entry;
     pub type bufferevent_ops;
-    pub type options;
     pub type tty_code;
     pub type screen_titles;
+    // LINKME: Variadic
+    #[no_mangle]
+    fn environ_set(_: *mut environ::environ, _: *const libc::c_char,
+                   _: *const libc::c_char, ...) -> ();
+    #[no_mangle]
+    fn options_set_string(_: *mut options::options, _: *const libc::c_char,
+                          _: libc::c_int, _: *const libc::c_char, ...);
+
     #[no_mangle]
     fn lstat(__file: *const libc::c_char, __buf: *mut stat) -> libc::c_int;
     #[no_mangle]
@@ -147,8 +180,6 @@ extern "C" {
     fn strlcpy(_: *mut libc::c_char, _: *const libc::c_char, _: libc::c_ulong)
      -> libc::c_ulong;
     #[no_mangle]
-    fn getptmfd() -> libc::c_int;
-    #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]
     static mut BSDoptind: libc::c_int;
@@ -169,46 +200,11 @@ extern "C" {
     #[no_mangle]
     static mut environ: *mut *mut libc::c_char;
     #[no_mangle]
-    static mut global_hooks: *mut hooks;
-    #[no_mangle]
-    static mut global_options: *mut options;
-    #[no_mangle]
-    static mut global_s_options: *mut options;
-    #[no_mangle]
-    static mut global_w_options: *mut options;
-    #[no_mangle]
-    static mut global_environ: *mut environ;
-    #[no_mangle]
-    static mut start_time: timeval;
-    #[no_mangle]
-    static mut socket_path: *const libc::c_char;
-    #[no_mangle]
     static mut cfg_finished: libc::c_int;
-    #[no_mangle]
-    fn hooks_create(_: *mut hooks) -> *mut hooks;
-    #[no_mangle]
-    fn options_create(_: *mut options) -> *mut options;
-    #[no_mangle]
-    fn options_default(_: *mut options, _: *const options_table_entry)
-     -> *mut options_entry;
-    #[no_mangle]
-    fn options_set_string(_: *mut options, _: *const libc::c_char,
-                          _: libc::c_int, _: *const libc::c_char, ...)
-     -> *mut options_entry;
-    #[no_mangle]
-    fn options_set_number(_: *mut options, _: *const libc::c_char,
-                          _: libc::c_longlong) -> *mut options_entry;
     #[no_mangle]
     static options_table: [options_table_entry; 0];
     #[no_mangle]
     static mut all_jobs: joblist;
-    #[no_mangle]
-    fn environ_create() -> *mut environ;
-    #[no_mangle]
-    fn environ_set(_: *mut environ, _: *const libc::c_char,
-                   _: *const libc::c_char, ...) -> ();
-    #[no_mangle]
-    fn environ_put(_: *mut environ, _: *const libc::c_char) -> ();
     #[no_mangle]
     static mut cmd_table: [*const cmd_entry; 0];
     #[no_mangle]
@@ -216,25 +212,23 @@ extern "C" {
     #[no_mangle]
     static mut clients: clients;
     #[no_mangle]
-    static mut marked_pane: cmd_find_state;
-    #[no_mangle]
-    static grid_default_cell: grid_cell;
+    static grid_default_cell: grid::grid_cell;
     #[no_mangle]
     static mut windows: windows;
     #[no_mangle]
-    static mut all_window_panes: window_pane_tree;
+    static mut all_window_panes: window::window_pane_tree;
     #[no_mangle]
-    static window_buffer_mode: window_mode;
+    static window_buffer_mode: window::window_mode;
     #[no_mangle]
-    static window_tree_mode: window_mode;
+    static window_tree_mode: window::window_mode;
     #[no_mangle]
-    static window_clock_mode: window_mode;
+    static window_clock_mode: window::window_mode;
     #[no_mangle]
     static window_clock_table: [[[libc::c_char; 5]; 5]; 14];
     #[no_mangle]
-    static window_client_mode: window_mode;
+    static window_client_mode: window::window_mode;
     #[no_mangle]
-    static window_copy_mode: window_mode;
+    static window_copy_mode: window::window_mode;
     #[no_mangle]
     static mut sessions: sessions;
     #[no_mangle]
@@ -245,19 +239,29 @@ extern "C" {
 pub static mut shell_command: *const libc::c_char = 0 as *const libc::c_char;
 
 #[no_mangle]
-pub static mut ptm_fd: libc::c_int = 0;
+pub static mut ptm_fd: libc::c_int = -1;
 
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_find_state {
-    pub flags: libc::c_int,
-    pub current: *mut cmd_find_state,
-    pub s: *mut session,
-    pub wl: *mut winlink,
-    pub w: *mut window,
-    pub wp: *mut window_pane,
-    pub idx: libc::c_int,
-}
+#[no_mangle]
+pub static mut socket_path: *const libc::c_char = 0 as *const libc::c_char;
+
+#[no_mangle]
+pub static mut global_hooks: *mut hooks::hooks = 0 as *mut hooks::hooks;
+
+#[no_mangle]
+pub static mut global_options: *mut options::options = 0 as *mut options::options;
+
+#[no_mangle]
+pub static mut global_s_options: *mut options::options = 0 as *mut options::options;
+
+#[no_mangle]
+pub static mut global_w_options: *mut options::options = 0 as *mut options::options;
+
+#[no_mangle]
+pub static mut global_environ: *mut environ::environ = 0 as *mut environ::environ;
+
+#[no_mangle]
+pub static mut start_time: timeval = unsafe { timeval{tv_sec: 0, tv_usec: 0,} };
+
 pub const TTY_VT102: unnamed_29 = 2;
 pub const _NL_WT_FMT_AMPM: unnamed_18 = 131167;
 pub const __MON_THOUSANDS_SEP: unnamed_18 = 262147;
@@ -283,9 +287,9 @@ pub const _NL_NUM_LC_MESSAGES: unnamed_18 = 327685;
 pub struct winlink {
     pub idx: libc::c_int,
     pub session: *mut session,
-    pub window: *mut window,
+    pub window: *mut window::window,
     pub status_width: size_t,
-    pub status_cell: grid_cell,
+    pub status_cell: grid::grid_cell,
     pub status_text: *mut libc::c_char,
     pub flags: libc::c_int,
     pub entry: unnamed_16,
@@ -334,11 +338,6 @@ pub const _NL_CTYPE_OUTDIGIT0_WC: unnamed_18 = 51;
 pub const _NL_CTYPE_OUTDIGIT8_MB: unnamed_18 = 49;
 pub const _NL_NUMERIC_THOUSANDS_SEP_WC: unnamed_18 = 65540;
 pub const _NL_NUM_LC_MEASUREMENT: unnamed_18 = 720898;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_pane_tree {
-    pub rbh_root: *mut window_pane,
-}
 pub type __syscall_slong_t = libc::c_long;
 pub const __P_SEP_BY_SPACE: unnamed_18 = 262154;
 #[derive ( Copy , Clone )]
@@ -359,8 +358,8 @@ pub type key_code = libc::c_ulonglong;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_2 {
-    pub tqe_next: *mut window,
-    pub tqe_prev: *mut *mut window,
+    pub tqe_next: *mut window::window,
+    pub tqe_prev: *mut *mut window::window,
 }
 pub const OPTIONS_TABLE_KEY: options_table_type = 2;
 pub const _NL_CTYPE_EXTRA_MAP_10: unnamed_18 = 81;
@@ -379,14 +378,9 @@ pub const _NL_NUM: unnamed_18 = 786449;
 pub const _NL_WALT_DIGITS: unnamed_18 = 131170;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct sessions {
-    pub rbh_root: *mut session,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
 pub struct key_binding {
     pub key: key_code,
-    pub cmdlist: *mut cmd_list,
+    pub cmdlist: *mut cmd_list::cmd_list,
     pub flags: libc::c_int,
     pub entry: unnamed_38,
 }
@@ -412,20 +406,14 @@ pub const _NL_MONETARY_DUO_INT_FRAC_DIGITS: unnamed_18 = 262168;
 pub const _NL_COLLATE_SYMB_HASH_SIZEMB: unnamed_18 = 196621;
 pub const _NL_MONETARY_DUO_INT_CURR_SYMBOL: unnamed_18 = 262166;
 pub const _NL_IDENTIFICATION_LANGUAGE: unnamed_18 = 786439;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_panes {
-    pub tqh_first: *mut window_pane,
-    pub tqh_last: *mut *mut window_pane,
-}
 pub type uid_t = __uid_t;
 pub const MON_8: unnamed_18 = 131105;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_4 {
-    pub rbe_left: *mut window,
-    pub rbe_right: *mut window,
-    pub rbe_parent: *mut window,
+    pub rbe_left: *mut window::window,
+    pub rbe_right: *mut window::window,
+    pub rbe_parent: *mut window::window,
     pub rbe_color: libc::c_int,
 }
 pub const _NL_CTYPE_EXTRA_MAP_6: unnamed_18 = 77;
@@ -446,32 +434,10 @@ pub struct unnamed_5 {
     pub le_next: *mut job,
     pub le_prev: *mut *mut job,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct grid_cell {
-    pub flags: u_char,
-    pub attr: u_short,
-    pub fg: libc::c_int,
-    pub bg: libc::c_int,
-    pub data: utf8_data,
-}
 pub const _NL_CTYPE_OUTDIGIT4_WC: unnamed_18 = 55;
 pub const _NL_WMON_1: unnamed_18 = 131150;
 pub const ABDAY_2: unnamed_18 = 131073;
 pub const ABMON_8: unnamed_18 = 131093;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct layout_cell {
-    pub type_0: layout_type,
-    pub parent: *mut layout_cell,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub xoff: u_int,
-    pub yoff: u_int,
-    pub wp: *mut window_pane,
-    pub cells: layout_cells,
-    pub entry: unnamed_13,
-}
 pub const OPTIONS_TABLE_CHOICE: options_table_type = 6;
 pub const MON_10: unnamed_18 = 131107;
 pub const _NL_CTYPE_INDIGITS5_WC: unnamed_18 = 36;
@@ -597,7 +563,7 @@ pub struct screen_sel {
     pub sy: u_int,
     pub ex: u_int,
     pub ey: u_int,
-    pub cell: grid_cell,
+    pub cell: grid::grid_cell,
 }
 pub const _NL_CTYPE_OUTDIGIT8_WC: unnamed_18 = 59;
 pub type FILE = _IO_FILE;
@@ -606,14 +572,6 @@ pub type FILE = _IO_FILE;
 pub struct unnamed_9 {
     pub ev_io_next: unnamed_17,
     pub ev_timeout: timeval,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_10 {
-    pub rbe_left: *mut window_pane,
-    pub rbe_right: *mut window_pane,
-    pub rbe_parent: *mut window_pane,
-    pub rbe_color: libc::c_int,
 }
 pub const OPTIONS_TABLE_NUMBER: options_table_type = 1;
 pub const __INT_P_SEP_BY_SPACE: unnamed_18 = 262161;
@@ -627,7 +585,7 @@ pub struct cmd_entry {
     pub source: cmd_entry_flag,
     pub target: cmd_entry_flag,
     pub flags: libc::c_int,
-    pub exec: Option<unsafe extern "C" fn(_: *mut cmd, _: *mut cmdq_item)
+    pub exec: Option<unsafe extern "C" fn(_: *mut cmd::cmd, _: *mut cmdq_item)
                          -> cmd_retval>,
 }
 pub const _NL_PAPER_HEIGHT: unnamed_18 = 458752;
@@ -693,26 +651,6 @@ pub struct unnamed_12 {
     pub ev_pncalls: *mut libc::c_short,
 }
 pub type uint8_t = libc::c_uchar;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_mode {
-    pub name: *const libc::c_char,
-    pub init: Option<unsafe extern "C" fn(_: *mut window_pane,
-                                          _: *mut cmd_find_state,
-                                          _: *mut args) -> *mut screen>,
-    pub free: Option<unsafe extern "C" fn(_: *mut window_pane) -> ()>,
-    pub resize: Option<unsafe extern "C" fn(_: *mut window_pane, _: u_int,
-                                            _: u_int) -> ()>,
-    pub key: Option<unsafe extern "C" fn(_: *mut window_pane, _: *mut client::client,
-                                         _: *mut session, _: key_code,
-                                         _: *mut mouse_event) -> ()>,
-    pub key_table: Option<unsafe extern "C" fn(_: *mut window_pane)
-                              -> *const libc::c_char>,
-    pub command: Option<unsafe extern "C" fn(_: *mut window_pane,
-                                             _: *mut client::client, _: *mut session,
-                                             _: *mut args,
-                                             _: *mut mouse_event) -> ()>,
-}
 pub const _NL_TIME_WEEK_1STWEEK: unnamed_18 = 131175;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -752,12 +690,6 @@ pub const _NL_COLLATE_TABLEWC: unnamed_18 = 196617;
 pub type __off64_t = libc::c_long;
 pub const _NL_WDAY_4: unnamed_18 = 131134;
 pub const PROMPT_ENTRY: unnamed = 0;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_13 {
-    pub tqe_next: *mut layout_cell,
-    pub tqe_prev: *mut *mut layout_cell,
-}
 pub const _NL_CTYPE_EXTRA_MAP_12: unnamed_18 = 83;
 pub const _NL_TIME_WEEK_1STDAY: unnamed_18 = 131174;
 pub const OPTIONS_TABLE_NONE: options_table_scope = 0;
@@ -862,20 +794,8 @@ pub const DAY_7: unnamed_18 = 131085;
 pub type prompt_free_cb =
     Option<unsafe extern "C" fn(_: *mut libc::c_void) -> ()>;
 pub type uint32_t = libc::c_uint;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct layout_cells {
-    pub tqh_first: *mut layout_cell,
-    pub tqh_last: *mut *mut layout_cell,
-}
 pub const _NL_PAPER_CODESET: unnamed_18 = 458754;
 pub const _NL_WABMON_6: unnamed_18 = 131143;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct grid_cell_entry {
-    pub flags: u_char,
-    pub unnamed: unnamed_25,
-}
 pub const _NL_IDENTIFICATION_CATEGORY: unnamed_18 = 786446;
 pub const _NL_MONETARY_THOUSANDS_SEP_WC: unnamed_18 = 262188;
 pub const _NL_CTYPE_INDIGITS7_WC: unnamed_18 = 38;
@@ -928,33 +848,6 @@ pub union unnamed_23 {
 pub const _NL_CTYPE_INDIGITS2_MB: unnamed_18 = 22;
 pub const _NL_CTYPE_MAP_NAMES: unnamed_18 = 11;
 pub type __uid_t = libc::c_uint;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub creation_time: timeval,
-    pub last_attached_time: timeval,
-    pub activity_time: timeval,
-    pub last_activity_time: timeval,
-    pub lock_timer: event,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub curw: *mut winlink,
-    pub lastw: winlink_stack,
-    pub windows: winlinks,
-    pub statusat: libc::c_int,
-    pub hooks: *mut hooks,
-    pub options: *mut options,
-    pub flags: libc::c_int,
-    pub attached: u_int,
-    pub tio: *mut termios,
-    pub environ: *mut environ,
-    pub references: libc::c_int,
-    pub gentry: unnamed_30,
-    pub entry: unnamed_15,
-}
 pub const ABDAY_3: unnamed_18 = 131074;
 pub type u_char = __u_char;
 pub const _NL_CTYPE_MB_CUR_MAX: unnamed_18 = 13;
@@ -966,48 +859,6 @@ pub const _NL_CTYPE_GAP3: unnamed_18 = 6;
 pub const _NL_PAPER_WIDTH: unnamed_18 = 458753;
 pub const _NL_COLLATE_WEIGHTMB: unnamed_18 = 196611;
 pub type __blkcnt_t = libc::c_long;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct options_table_entry {
-    pub name: *const libc::c_char,
-    pub type_0: options_table_type,
-    pub scope: options_table_scope,
-    pub minimum: u_int,
-    pub maximum: u_int,
-    pub choices: *mut *const libc::c_char,
-    pub default_str: *const libc::c_char,
-    pub default_num: libc::c_longlong,
-    pub separator: *const libc::c_char,
-    pub style: *const libc::c_char,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub name_event: event,
-    pub name_time: timeval,
-    pub alerts_timer: event,
-    pub activity_time: timeval,
-    pub active: *mut window_pane,
-    pub last: *mut window_pane,
-    pub panes: window_panes,
-    pub lastlayout: libc::c_int,
-    pub layout_root: *mut layout_cell,
-    pub saved_layout_root: *mut layout_cell,
-    pub old_layout: *mut libc::c_char,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub flags: libc::c_int,
-    pub alerts_queued: libc::c_int,
-    pub alerts_entry: unnamed_2,
-    pub options: *mut options,
-    pub style: grid_cell,
-    pub active_style: grid_cell,
-    pub references: u_int,
-    pub winlinks: unnamed_7,
-    pub entry: unnamed_4,
-}
 pub const MON_7: unnamed_18 = 131104;
 pub const _NL_NUM_LC_PAPER: unnamed_18 = 458755;
 pub const RADIXCHAR: unnamed_18 = 65536;
@@ -1084,15 +935,6 @@ pub const MON_6: unnamed_18 = 131103;
 pub const _NL_ADDRESS_COUNTRY_CAR: unnamed_18 = 589829;
 pub const _NL_CTYPE_INDIGITS9_MB: unnamed_18 = 29;
 pub const LINE_SEL_NONE: unnamed_37 = 0;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmdq_shared {
-    pub references: libc::c_int,
-    pub flags: libc::c_int,
-    pub formats: *mut format_tree,
-    pub mouse: mouse_event,
-    pub current: cmd_find_state,
-}
 pub const MON_3: unnamed_18 = 131100;
 pub const _NL_WABDAY_5: unnamed_18 = 131128;
 pub const THOUSEP: unnamed_18 = 65537;
@@ -1147,25 +989,8 @@ pub struct session_group {
     pub sessions: unnamed_0,
     pub entry: unnamed_11,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct grid {
-    pub flags: libc::c_int,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub hscrolled: u_int,
-    pub hsize: u_int,
-    pub hlimit: u_int,
-    pub linedata: *mut grid_line,
-}
 pub type __pid_t = libc::c_int;
 pub const DAY_2: unnamed_18 = 131080;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_list {
-    pub references: libc::c_int,
-    pub list: unnamed_34,
-}
 pub const _NL_CTYPE_OUTDIGIT9_MB: unnamed_18 = 50;
 pub const _NL_CTYPE_EXTRA_MAP_9: unnamed_18 = 80;
 pub const _NL_NUMERIC_DECIMAL_POINT_WC: unnamed_18 = 65539;
@@ -1191,7 +1016,7 @@ pub struct unnamed_28 {
 pub struct screen {
     pub title: *mut libc::c_char,
     pub titles: *mut screen_titles,
-    pub grid: *mut grid,
+    pub grid: *mut grid::grid,
     pub cx: u_int,
     pub cy: u_int,
     pub cstyle: u_int,
@@ -1206,7 +1031,7 @@ pub type unnamed_29 = libc::c_uint;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct windows {
-    pub rbh_root: *mut window,
+    pub rbh_root: *mut window::window,
 }
 pub const _NL_NUM_LC_IDENTIFICATION: unnamed_18 = 786448;
 pub const _NL_MONETARY_DUO_N_SIGN_POSN: unnamed_18 = 262179;
@@ -1244,9 +1069,9 @@ pub const _NL_NAME_NAME_GEN: unnamed_18 = 524289;
 pub struct grid_line {
     pub cellused: u_int,
     pub cellsize: u_int,
-    pub celldata: *mut grid_cell_entry,
+    pub celldata: *mut grid::grid_cell_entry,
     pub extdsize: u_int,
-    pub extddata: *mut grid_cell,
+    pub extddata: *mut grid::grid_cell,
     pub flags: libc::c_int,
 }
 pub const _NL_WDAY_7: unnamed_18 = 131137;
@@ -1275,16 +1100,6 @@ pub struct unnamed_31 {
 }
 pub const _NL_MONETARY_CRNCYSTR: unnamed_18 = 262159;
 pub type __ino_t = libc::c_ulong;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd {
-    pub entry: *const cmd_entry,
-    pub args: *mut args,
-    pub file: *mut libc::c_char,
-    pub line: u_int,
-    pub flags: libc::c_int,
-    pub qentry: unnamed_35,
-}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_marker {
@@ -1344,15 +1159,15 @@ pub const _NL_NAME_NAME_MS: unnamed_18 = 524293;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_34 {
-    pub tqh_first: *mut cmd,
-    pub tqh_last: *mut *mut cmd,
+    pub tqh_first: *mut cmd::cmd,
+    pub tqh_last: *mut *mut cmd::cmd,
 }
 pub type pid_t = __pid_t;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_35 {
-    pub tqe_next: *mut cmd,
-    pub tqe_prev: *mut *mut cmd,
+    pub tqe_next: *mut cmd::cmd,
+    pub tqe_prev: *mut *mut cmd::cmd,
 }
 pub const OPTIONS_TABLE_ARRAY: options_table_type = 8;
 pub const _NL_MEASUREMENT_MEASUREMENT: unnamed_18 = 720896;
@@ -1445,62 +1260,8 @@ pub struct unnamed_38 {
     pub rbe_parent: *mut key_binding,
     pub rbe_color: libc::c_int,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_39 {
-    pub tqe_next: *mut window_pane,
-    pub tqe_prev: *mut *mut window_pane,
-}
 pub const _NL_NAME_NAME_MR: unnamed_18 = 524290;
 pub type size_t = libc::c_ulong;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_pane {
-    pub id: u_int,
-    pub active_point: u_int,
-    pub window: *mut window,
-    pub layout_cell: *mut layout_cell,
-    pub saved_layout_cell: *mut layout_cell,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub osx: u_int,
-    pub osy: u_int,
-    pub xoff: u_int,
-    pub yoff: u_int,
-    pub flags: libc::c_int,
-    pub argc: libc::c_int,
-    pub argv: *mut *mut libc::c_char,
-    pub shell: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub pid: pid_t,
-    pub tty: [libc::c_char; 32],
-    pub status: libc::c_int,
-    pub fd: libc::c_int,
-    pub event: *mut bufferevent,
-    pub resize_timer: event,
-    pub ictx: *mut input_ctx,
-    pub colgc: grid_cell,
-    pub palette: *mut libc::c_int,
-    pub pipe_fd: libc::c_int,
-    pub pipe_event: *mut bufferevent,
-    pub pipe_off: size_t,
-    pub screen: *mut screen,
-    pub base: screen,
-    pub status_screen: screen,
-    pub status_size: size_t,
-    pub saved_cx: u_int,
-    pub saved_cy: u_int,
-    pub saved_grid: *mut grid,
-    pub saved_cell: grid_cell,
-    pub mode: *const window_mode,
-    pub modedata: *mut libc::c_void,
-    pub modetimer: event,
-    pub modelast: time_t,
-    pub modeprefix: u_int,
-    pub searchstr: *mut libc::c_char,
-    pub entry: unnamed_39,
-    pub tree_entry: unnamed_10,
-}
 pub const _NL_IDENTIFICATION_AUDIENCE: unnamed_18 = 786441;
 #[no_mangle]
 pub unsafe extern "C" fn areshell(mut shell: *const libc::c_char)
@@ -1781,7 +1542,7 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char)
                     flags |= 65536i32
                 }
             }
-            global_hooks = hooks_create(0 as *mut hooks);
+            global_hooks = hooks_create(0 as *mut hooks::hooks);
             global_environ = environ_create();
             var = environ;
             while *var != 0 as *mut libc::c_void as *mut libc::c_char {
@@ -1802,9 +1563,9 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char)
                             b"%s\x00" as *const u8 as *const libc::c_char,
                             cwd);
             }
-            global_options = options_create(0 as *mut options);
-            global_s_options = options_create(0 as *mut options);
-            global_w_options = options_create(0 as *mut options);
+            global_options = options_create(0 as *mut options::options);
+            global_s_options = options_create(0 as *mut options::options);
+            global_w_options = options_create(0 as *mut options::options);
             oe = options_table.as_ptr();
             while (*oe).name != 0 as *mut libc::c_void as *const libc::c_char
                   {

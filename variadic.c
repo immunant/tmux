@@ -28,6 +28,7 @@ extern struct environ_entry *environ_RB_INSERT(struct environ*, struct environ_e
 extern struct environ_entry *environ_RB_NEXT(struct environ_entry*);
 extern struct environ_entry *environ_RB_MINMAX(struct environ*, int);
 extern struct format_entry *format_entry_tree_RB_INSERT(struct format_entry_tree*, struct format_entry*);
+extern void status_message_callback(int, short, void *);
 
 extern char **cfg_causes;
 extern u_int cfg_ncauses;
@@ -52,7 +53,6 @@ struct format_tree {
 
 	RB_HEAD(format_entry_tree, format_entry) tree;
 };
-extern void status_message_callback(int, short, void *);
 struct options_entry {
 	struct options				 *owner;
 

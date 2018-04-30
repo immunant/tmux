@@ -1,8 +1,4 @@
 extern crate libc;
-
-use compat::freezero::freezero;
-use compat::imsg_buffer::{msgbuf, msgbuf_init, msgbuf_clear, ibuf, ibuf_add, ibuf_free, ibuf_close, ibuf_dynamic};
-
 extern "C" {
     pub type _IO_FILE_plus;
     #[no_mangle]
@@ -13,6 +9,10 @@ extern "C" {
                __flags: libc::c_int) -> ssize_t;
     #[no_mangle]
     fn __errno_location() -> *mut libc::c_int;
+    #[no_mangle]
+    static mut program_invocation_name: *mut libc::c_char;
+    #[no_mangle]
+    static mut program_invocation_short_name: *mut libc::c_char;
     #[no_mangle]
     fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
     #[no_mangle]
@@ -32,6 +32,8 @@ extern "C" {
     fn close(__fd: libc::c_int) -> libc::c_int;
     #[no_mangle]
     static mut __environ: *mut *mut libc::c_char;
+    #[no_mangle]
+    static mut environ: *mut *mut libc::c_char;
     #[no_mangle]
     fn getpid() -> __pid_t;
     #[no_mangle]
@@ -61,9 +63,28 @@ extern "C" {
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
-    fn msgbuf_write(_: *mut msgbuf) -> libc::c_int; // Miguel is looking into this
+    static mut _sys_nerr: libc::c_int;
+    #[no_mangle]
+    static _sys_errlist: [*const libc::c_char; 0];
+    #[no_mangle]
+    fn ibuf_dynamic(_: size_t, _: size_t) -> *mut ibuf;
+    #[no_mangle]
+    fn ibuf_add(_: *mut ibuf, _: *const libc::c_void, _: size_t)
+     -> libc::c_int;
+    #[no_mangle]
+    fn ibuf_close(_: *mut msgbuf, _: *mut ibuf) -> ();
+    #[no_mangle]
+    fn ibuf_free(_: *mut ibuf) -> ();
+    #[no_mangle]
+    fn msgbuf_init(_: *mut msgbuf) -> ();
+    #[no_mangle]
+    fn msgbuf_clear(_: *mut msgbuf) -> ();
+    #[no_mangle]
+    fn msgbuf_write(_: *mut msgbuf) -> libc::c_int;
     #[no_mangle]
     fn getdtablecount() -> libc::c_int;
+    #[no_mangle]
+    fn freezero(_: *mut libc::c_void, _: size_t) -> ();
     #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]
@@ -75,9 +96,76 @@ extern "C" {
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
 }
-pub type u_char = __u_char;
-pub type _IO_lock_t = ();
-pub type socklen_t = __socklen_t;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct _IO_marker {
+    pub _next: *mut _IO_marker,
+    pub _sbuf: *mut _IO_FILE,
+    pub _pos: libc::c_int,
+}
+pub type __ssize_t = libc::c_long;
+pub const SCM_RIGHTS: unnamed_0 = 1;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed {
+    pub tqe_next: *mut imsg_fd,
+    pub tqe_prev: *mut *mut imsg_fd,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct imsgbuf {
+    pub fds: unnamed_4,
+    pub r: ibuf_read,
+    pub w: msgbuf,
+    pub fd: libc::c_int,
+    pub pid: pid_t,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct cmsghdr {
+    pub cmsg_len: size_t,
+    pub cmsg_level: libc::c_int,
+    pub cmsg_type: libc::c_int,
+    pub __cmsg_data: [libc::c_uchar; 0],
+}
+pub type uint16_t = libc::c_ushort;
+pub type __socklen_t = libc::c_uint;
+pub type pid_t = __pid_t;
+pub type __off_t = libc::c_long;
+pub type __u_char = libc::c_uchar;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct imsg_hdr {
+    pub type_0: uint32_t,
+    pub len: uint16_t,
+    pub flags: uint16_t,
+    pub peerid: uint32_t,
+    pub pid: uint32_t,
+}
+pub type unnamed_0 = libc::c_uint;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct imsg_fd {
+    pub entry: unnamed,
+    pub fd: libc::c_int,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_1 {
+    pub tqe_next: *mut ibuf,
+    pub tqe_prev: *mut *mut ibuf,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct ibuf {
+    pub entry: unnamed_1,
+    pub buf: *mut u_char,
+    pub size: size_t,
+    pub max: size_t,
+    pub wpos: size_t,
+    pub rpos: size_t,
+    pub fd: libc::c_int,
+}
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct msghdr {
@@ -89,6 +177,59 @@ pub struct msghdr {
     pub msg_controllen: size_t,
     pub msg_flags: libc::c_int,
 }
+pub type ssize_t = __ssize_t;
+pub type _IO_lock_t = ();
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct imsg {
+    pub hdr: imsg_hdr,
+    pub fd: libc::c_int,
+    pub data: *mut libc::c_void,
+}
+pub type __pid_t = libc::c_int;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub union unnamed_2 {
+    hdr: cmsghdr,
+    buf: [libc::c_char; 24],
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct msgbuf {
+    pub bufs: unnamed_3,
+    pub queued: uint32_t,
+    pub fd: libc::c_int,
+}
+pub const SCM_CREDENTIALS: unnamed_0 = 2;
+pub type uint32_t = libc::c_uint;
+pub type u_char = __u_char;
+pub type size_t = libc::c_ulong;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_3 {
+    pub tqh_first: *mut ibuf,
+    pub tqh_last: *mut *mut ibuf,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct ibuf_read {
+    pub buf: [u_char; 65535],
+    pub rptr: *mut u_char,
+    pub wpos: size_t,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_4 {
+    pub tqh_first: *mut imsg_fd,
+    pub tqh_last: *mut *mut imsg_fd,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct iovec {
+    pub iov_base: *mut libc::c_void,
+    pub iov_len: size_t,
+}
+pub type __off64_t = libc::c_long;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_FILE {
@@ -122,108 +263,7 @@ pub struct _IO_FILE {
     pub _mode: libc::c_int,
     pub _unused2: [libc::c_char; 20],
 }
-pub type __pid_t = libc::c_int;
-pub type __socklen_t = libc::c_uint;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct iovec {
-    pub iov_base: *mut libc::c_void,
-    pub iov_len: size_t,
-}
-pub type uint16_t = libc::c_ushort;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct imsg {
-    pub hdr: imsg_hdr,
-    pub fd: libc::c_int,
-    pub data: *mut libc::c_void,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed {
-    pub tqh_first: *mut ibuf,
-    pub tqh_last: *mut *mut ibuf,
-}
-pub type __off_t = libc::c_long;
-pub type size_t = libc::c_ulong;
-pub type unnamed_0 = libc::c_uint;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct _IO_marker {
-    pub _next: *mut _IO_marker,
-    pub _sbuf: *mut _IO_FILE,
-    pub _pos: libc::c_int,
-}
-pub type __off64_t = libc::c_long;
-pub type pid_t = __pid_t;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct imsgbuf {
-    pub fds: unnamed_4,
-    pub r: ibuf_read,
-    pub w: msgbuf,
-    pub fd: libc::c_int,
-    pub pid: pid_t,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub union unnamed_1 {
-    hdr: cmsghdr,
-    buf: [libc::c_char; 24],
-}
-pub type ssize_t = __ssize_t;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_2 {
-    pub tqe_next: *mut imsg_fd,
-    pub tqe_prev: *mut *mut imsg_fd,
-}
-pub type __u_char = libc::c_uchar;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_3 {
-    pub tqe_next: *mut ibuf,
-    pub tqe_prev: *mut *mut ibuf,
-}
-pub const SCM_RIGHTS: unnamed_0 = 1;
-pub type __ssize_t = libc::c_long;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct imsg_fd {
-    pub entry: unnamed_2,
-    pub fd: libc::c_int,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_4 {
-    pub tqh_first: *mut imsg_fd,
-    pub tqh_last: *mut *mut imsg_fd,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct imsg_hdr {
-    pub type_0: uint32_t,
-    pub len: uint16_t,
-    pub flags: uint16_t,
-    pub peerid: uint32_t,
-    pub pid: uint32_t,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmsghdr {
-    pub cmsg_len: size_t,
-    pub cmsg_level: libc::c_int,
-    pub cmsg_type: libc::c_int,
-    pub __cmsg_data: [libc::c_uchar; 0],
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct ibuf_read {
-    pub buf: [u_char; 65535],
-    pub rptr: *mut u_char,
-    pub wpos: size_t,
-}
-pub type uint32_t = libc::c_uint;
+pub type socklen_t = __socklen_t;
 #[no_mangle]
 pub unsafe extern "C" fn imsg_init(mut ibuf: *mut imsgbuf,
                                    mut fd: libc::c_int) -> () {
@@ -256,8 +296,8 @@ pub unsafe extern "C" fn imsg_read(mut ibuf: *mut imsgbuf) -> ssize_t {
                msg_controllen: 0,
                msg_flags: 0,};
     let mut cmsg: *mut cmsghdr = 0 as *mut cmsghdr;
-    let mut cmsgbuf: unnamed_1 =
-        unnamed_1{hdr:
+    let mut cmsgbuf: unnamed_2 =
+        unnamed_2{hdr:
                       cmsghdr{cmsg_len: 0,
                               cmsg_level: 0,
                               cmsg_type: 0,
@@ -268,8 +308,8 @@ pub unsafe extern "C" fn imsg_read(mut ibuf: *mut imsgbuf) -> ssize_t {
     let mut ifd: *mut imsg_fd = 0 as *mut imsg_fd;
     memset(&mut msg as *mut msghdr as *mut libc::c_void, 0i32,
            ::std::mem::size_of::<msghdr>() as libc::c_ulong);
-    memset(&mut cmsgbuf as *mut unnamed_1 as *mut libc::c_void, 0i32,
-           ::std::mem::size_of::<unnamed_1>() as libc::c_ulong);
+    memset(&mut cmsgbuf as *mut unnamed_2 as *mut libc::c_void, 0i32,
+           ::std::mem::size_of::<unnamed_2>() as libc::c_ulong);
     iov.iov_base =
         (*ibuf).r.buf.as_mut_ptr().offset((*ibuf).r.wpos as isize) as
             *mut libc::c_void;
@@ -347,7 +387,7 @@ pub unsafe extern "C" fn imsg_read(mut ibuf: *mut imsgbuf) -> ssize_t {
                 n = recvmsg((*ibuf).fd, &mut msg as *mut msghdr, 0i32);
                 if n == 1i32.wrapping_neg() as libc::c_long {
                     if !(*__errno_location() == 4i32) {
-                        current_block = 12468031930487737866;
+                        current_block = 1741746549607172898;
                         break ;
                     }
                 } else {
@@ -371,7 +411,7 @@ pub unsafe extern "C" fn imsg_read(mut ibuf: *mut imsgbuf) -> ssize_t {
             match current_block {
                 7351195479953500246 => {
                     if !(cmsg != 0 as *mut libc::c_void as *mut cmsghdr) {
-                        current_block = 12468031930487737866;
+                        current_block = 1741746549607172898;
                         continue ;
                     }
                     if (*cmsg).cmsg_level == 1i32 &&

@@ -23,6 +23,10 @@ extern "C" {
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
+    static mut _sys_nerr: libc::c_int;
+    #[no_mangle]
+    static _sys_errlist: [*const libc::c_char; 0];
+    #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]
     static mut BSDoptind: libc::c_int;
@@ -33,9 +37,16 @@ extern "C" {
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
 }
-pub type _IO_lock_t = ();
-pub type __off_t = libc::c_long;
 pub type __off64_t = libc::c_long;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct _IO_marker {
+    pub _next: *mut _IO_marker,
+    pub _sbuf: *mut _IO_FILE,
+    pub _pos: libc::c_int,
+}
+pub type __off_t = libc::c_long;
+pub type size_t = libc::c_ulong;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_FILE {
@@ -69,14 +80,7 @@ pub struct _IO_FILE {
     pub _mode: libc::c_int,
     pub _unused2: [libc::c_char; 20],
 }
-pub type size_t = libc::c_ulong;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct _IO_marker {
-    pub _next: *mut _IO_marker,
-    pub _sbuf: *mut _IO_FILE,
-    pub _pos: libc::c_int,
-}
+pub type _IO_lock_t = ();
 #[no_mangle]
 pub unsafe extern "C" fn freezero(mut ptr: *mut libc::c_void,
                                   mut size: size_t) -> () {

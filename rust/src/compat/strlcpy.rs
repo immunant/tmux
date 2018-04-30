@@ -18,6 +18,10 @@ extern "C" {
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
+    static mut _sys_nerr: libc::c_int;
+    #[no_mangle]
+    static _sys_errlist: [*const libc::c_char; 0];
+    #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]
     static mut BSDoptind: libc::c_int;
@@ -28,6 +32,16 @@ extern "C" {
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
 }
+pub type __off64_t = libc::c_long;
+pub type _IO_lock_t = ();
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct _IO_marker {
+    pub _next: *mut _IO_marker,
+    pub _sbuf: *mut _IO_FILE,
+    pub _pos: libc::c_int,
+}
+pub type __off_t = libc::c_long;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_FILE {
@@ -61,17 +75,7 @@ pub struct _IO_FILE {
     pub _mode: libc::c_int,
     pub _unused2: [libc::c_char; 20],
 }
-pub type _IO_lock_t = ();
-pub type __off64_t = libc::c_long;
-pub type __off_t = libc::c_long;
 pub type size_t = libc::c_ulong;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct _IO_marker {
-    pub _next: *mut _IO_marker,
-    pub _sbuf: *mut _IO_FILE,
-    pub _pos: libc::c_int,
-}
 #[no_mangle]
 pub unsafe extern "C" fn strlcpy(mut dst: *mut libc::c_char,
                                  mut src: *const libc::c_char,
@@ -86,7 +90,17 @@ pub unsafe extern "C" fn strlcpy(mut dst: *mut libc::c_char,
     } else { current_block = 11174649648027449784; }
     loop  {
         match current_block {
-            4988723283678924448 => {
+            11174649648027449784 => {
+                if !(n == 0i32 as libc::c_ulong) {
+                    current_block = 4644295000439058019;
+                    break ;
+                }
+                if siz != 0i32 as libc::c_ulong {
+                    current_block = 7502529970979898288;
+                    break ;
+                } else { current_block = 7095457783677275021; break ; }
+            }
+            _ => {
                 let fresh1 = d;
                 d = d.offset(1);
                 let fresh0 = s;
@@ -100,16 +114,6 @@ pub unsafe extern "C" fn strlcpy(mut dst: *mut libc::c_char,
                 if n != 0i32 as libc::c_ulong {
                     current_block = 4988723283678924448;
                 } else { current_block = 11174649648027449784; }
-            }
-            _ => {
-                if !(n == 0i32 as libc::c_ulong) {
-                    current_block = 4644295000439058019;
-                    break ;
-                }
-                if siz != 0i32 as libc::c_ulong {
-                    current_block = 7502529970979898288;
-                    break ;
-                } else { current_block = 7095457783677275021; break ; }
             }
         }
     }

@@ -1,38 +1,29 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
 extern "C" {
-    pub type format_tree;
-    pub type tmuxpeer;
-    pub type tmuxproc;
-    pub type input_ctx;
-    pub type screen_write_collect_line;
-    pub type screen_write_collect_item;
-    pub type evbuffer;
-    pub type paste_buffer;
-    pub type screen_titles;
-    pub type hooks;
-    pub type environ;
+    pub type args_entry;
     pub type tty_code;
     pub type options;
-    pub type bufferevent_ops;
-    pub type args_entry;
-    pub type _IO_FILE_plus;
+    pub type hooks;
+    pub type screen_write_collect_line;
+    pub type evbuffer;
+    pub type input_ctx;
     pub type format_job_tree;
+    pub type format_tree;
+    pub type environ;
+    pub type screen_write_collect_item;
+    pub type tmuxproc;
     pub type event_base;
+    pub type paste_buffer;
+    pub type tmuxpeer;
+    pub type screen_titles;
+    pub type _IO_FILE_plus;
+    pub type bufferevent_ops;
     #[no_mangle]
     fn __errno_location() -> *mut libc::c_int;
+    #[no_mangle]
+    static mut program_invocation_name: *mut libc::c_char;
+    #[no_mangle]
+    static mut program_invocation_short_name: *mut libc::c_char;
     #[no_mangle]
     fn free(__ptr: *mut libc::c_void) -> ();
     #[no_mangle]
@@ -70,7 +61,11 @@ extern "C" {
     #[no_mangle]
     static mut timezone: libc::c_long;
     #[no_mangle]
+    static mut getdate_err: libc::c_int;
+    #[no_mangle]
     static mut __environ: *mut *mut libc::c_char;
+    #[no_mangle]
+    static mut environ: *mut *mut libc::c_char;
     #[no_mangle]
     static mut optarg: *mut libc::c_char;
     #[no_mangle]
@@ -109,6 +104,10 @@ extern "C" {
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
+    static mut _sys_nerr: libc::c_int;
+    #[no_mangle]
+    static _sys_errlist: [*const libc::c_char; 0];
+    #[no_mangle]
     fn event_add(ev: *mut event, timeout: *const timeval) -> libc::c_int;
     #[no_mangle]
     fn event_del(_: *mut event) -> libc::c_int;
@@ -143,8 +142,6 @@ extern "C" {
     #[no_mangle]
     fn xasprintf(_: *mut *mut libc::c_char, _: *const libc::c_char, ...)
      -> libc::c_int;
-    #[no_mangle]
-    static mut environ: *mut *mut libc::c_char;
     #[no_mangle]
     static mut global_hooks: *mut hooks;
     #[no_mangle]
@@ -296,253 +293,88 @@ extern "C" {
     #[no_mangle]
     static mut session_groups: session_groups;
 }
-pub const CMD_FIND_PANE: cmd_find_type = 0;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct client {
-    pub name: *const libc::c_char,
-    pub peer: *mut tmuxpeer,
-    pub queue: cmdq_list,
-    pub pid: pid_t,
-    pub fd: libc::c_int,
-    pub event: event,
-    pub retval: libc::c_int,
-    pub creation_time: timeval,
-    pub activity_time: timeval,
-    pub environ: *mut environ,
-    pub jobs: *mut format_job_tree,
-    pub title: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub term: *mut libc::c_char,
-    pub ttyname: *mut libc::c_char,
-    pub tty: tty,
-    pub written: size_t,
-    pub discarded: size_t,
-    pub redraw: size_t,
-    pub stdin_callback: Option<unsafe extern "C" fn(_: *mut client,
-                                                    _: libc::c_int,
-                                                    _: *mut libc::c_void)
-                                   -> ()>,
-    pub stdin_callback_data: *mut libc::c_void,
-    pub stdin_data: *mut evbuffer,
-    pub stdin_closed: libc::c_int,
-    pub stdout_data: *mut evbuffer,
-    pub stderr_data: *mut evbuffer,
-    pub repeat_timer: event,
-    pub click_timer: event,
-    pub click_button: u_int,
-    pub status: status_line,
-    pub flags: libc::c_int,
-    pub keytable: *mut key_table,
-    pub identify_timer: event,
-    pub identify_callback: Option<unsafe extern "C" fn(_: *mut client,
-                                                       _: *mut window_pane)
-                                      -> ()>,
-    pub identify_callback_data: *mut libc::c_void,
-    pub message_string: *mut libc::c_char,
-    pub message_timer: event,
-    pub message_next: u_int,
-    pub message_log: unnamed_24,
-    pub prompt_string: *mut libc::c_char,
-    pub prompt_buffer: *mut utf8_data,
-    pub prompt_index: size_t,
-    pub prompt_inputcb: prompt_input_cb,
-    pub prompt_freecb: prompt_free_cb,
-    pub prompt_data: *mut libc::c_void,
-    pub prompt_hindex: u_int,
-    pub prompt_mode: unnamed_7,
-    pub prompt_flags: libc::c_int,
-    pub session: *mut session,
-    pub last_session: *mut session,
-    pub wlmouse: libc::c_int,
-    pub references: libc::c_int,
-    pub entry: unnamed_30,
-}
-pub const KEYC_F11: unnamed_25 = 268435536;
-pub const KEYC_MOUSEUP3_BORDER: unnamed_25 = 268435482;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_list {
-    pub references: libc::c_int,
-    pub list: unnamed_28,
-}
-pub const KEYC_MOUSEDRAG1_STATUS: unnamed_25 = 268435484;
+pub const KEYC_MOUSEMOVE_PANE: unnamed_19 = 268435462;
+pub type bufferevent_event_cb =
+    Option<unsafe extern "C" fn(_: *mut bufferevent, _: libc::c_short,
+                                _: *mut libc::c_void) -> ()>;
+pub type cmd_retval = libc::c_int;
+pub const KEYC_MOUSEUP3_BORDER: unnamed_19 = 268435482;
+pub const OPTIONS_TABLE_NONE: options_table_scope = 0;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
-pub const OPTIONS_TABLE_STYLE: options_table_type = 7;
-pub const KEYC_BTAB: unnamed_25 = 268435544;
-pub const CMDQ_CALLBACK: cmdq_type = 1;
-pub const KEYC_KP_ONE: unnamed_25 = 268435559;
-pub const KEYC_KP_ZERO: unnamed_25 = 268435563;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct sessions {
-    pub rbh_root: *mut session,
+    pub tqe_next: *mut cmd,
+    pub tqe_prev: *mut *mut cmd,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_0 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_1 {
-    pub tqe_next: *mut winlink,
-    pub tqe_prev: *mut *mut winlink,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmdq_list {
-    pub tqh_first: *mut cmdq_item,
-    pub tqh_last: *mut *mut cmdq_item,
-}
-pub const KEYC_UP: unnamed_25 = 268435545;
-pub type pid_t = __pid_t;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct utf8_data {
-    pub data: [u_char; 9],
-    pub have: u_char,
-    pub size: u_char,
-    pub width: u_char,
-}
-pub const KEYC_MOUSEUP2_STATUS: unnamed_25 = 268435478;
-pub const PROMPT_ENTRY: unnamed_7 = 0;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_entry_flag {
-    pub flag: libc::c_char,
-    pub type_0: cmd_find_type,
+pub struct tty {
+    pub client: *mut client,
+    pub sx: u_int,
+    pub sy: u_int,
+    pub cx: u_int,
+    pub cy: u_int,
+    pub cstyle: u_int,
+    pub ccolour: *mut libc::c_char,
+    pub mode: libc::c_int,
+    pub rlower: u_int,
+    pub rupper: u_int,
+    pub rleft: u_int,
+    pub rright: u_int,
+    pub fd: libc::c_int,
+    pub event_in: event,
+    pub in_0: *mut evbuffer,
+    pub event_out: event,
+    pub out: *mut evbuffer,
+    pub timer: event,
+    pub discarded: size_t,
+    pub tio: termios,
+    pub cell: grid_cell,
+    pub last_wp: libc::c_int,
+    pub last_cell: grid_cell,
     pub flags: libc::c_int,
+    pub term: *mut tty_term,
+    pub term_name: *mut libc::c_char,
+    pub term_flags: libc::c_int,
+    pub term_type: unnamed_20,
+    pub mouse: mouse_event,
+    pub mouse_drag_flag: libc::c_int,
+    pub mouse_drag_update: Option<unsafe extern "C" fn(_: *mut client,
+                                                       _: *mut mouse_event)
+                                      -> ()>,
+    pub mouse_drag_release: Option<unsafe extern "C" fn(_: *mut client,
+                                                        _: *mut mouse_event)
+                                       -> ()>,
+    pub key_timer: event,
+    pub key_tree: *mut tty_key,
 }
-pub type bitstr_t = libc::c_uchar;
-pub const OPTIONS_TABLE_FLAG: options_table_type = 5;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct event_watermark {
-    pub low: size_t,
-    pub high: size_t,
-}
-pub type __suseconds_t = libc::c_long;
-pub const TTY_VT101: unnamed_16 = 1;
-pub const KEYC_DOUBLECLICK3_PANE: unnamed_25 = 268435513;
-pub const OPTIONS_TABLE_SESSION: options_table_scope = 2;
-pub type ssize_t = __ssize_t;
-pub const KEYC_WHEELDOWN_STATUS: unnamed_25 = 268435505;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_2 {
-    pub rbe_left: *mut winlink,
-    pub rbe_right: *mut winlink,
-    pub rbe_parent: *mut winlink,
-    pub rbe_color: libc::c_int,
-}
-pub const KEYC_F7: unnamed_25 = 268435532;
-pub const OPTIONS_TABLE_ATTRIBUTES: options_table_type = 4;
-pub const KEYC_TRIPLECLICK2_STATUS: unnamed_25 = 268435520;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct screen_write_ctx {
-    pub wp: *mut window_pane,
-    pub s: *mut screen,
-    pub item: *mut screen_write_collect_item,
-    pub list: *mut screen_write_collect_line,
-    pub scrolled: u_int,
-    pub bg: u_int,
-    pub cells: u_int,
-    pub written: u_int,
-    pub skipped: u_int,
-}
-pub type u_int = __u_int;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_3 {
-    pub rbe_left: *mut window,
-    pub rbe_right: *mut window,
-    pub rbe_parent: *mut window,
-    pub rbe_color: libc::c_int,
-}
-pub const OPTIONS_TABLE_NUMBER: options_table_type = 1;
-pub const KEYC_MOUSEDRAGEND3_BORDER: unnamed_25 = 268435500;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct tty_term {
+pub struct window {
+    pub id: u_int,
     pub name: *mut libc::c_char,
-    pub references: u_int,
-    pub acs: [[libc::c_char; 2]; 256],
-    pub codes: *mut tty_code,
+    pub name_event: event,
+    pub name_time: timeval,
+    pub alerts_timer: event,
+    pub activity_time: timeval,
+    pub active: *mut window_pane,
+    pub last: *mut window_pane,
+    pub panes: window_panes,
+    pub lastlayout: libc::c_int,
+    pub layout_root: *mut layout_cell,
+    pub saved_layout_root: *mut layout_cell,
+    pub old_layout: *mut libc::c_char,
+    pub sx: u_int,
+    pub sy: u_int,
     pub flags: libc::c_int,
+    pub alerts_queued: libc::c_int,
+    pub alerts_entry: unnamed_23,
+    pub options: *mut options,
+    pub style: grid_cell,
+    pub active_style: grid_cell,
+    pub references: u_int,
+    pub winlinks: unnamed_32,
     pub entry: unnamed_4,
-}
-pub const UTF8_DONE: utf8_state = 1;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct joblist {
-    pub lh_first: *mut job,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct grid_line {
-    pub cellused: u_int,
-    pub cellsize: u_int,
-    pub celldata: *mut grid_cell_entry,
-    pub extdsize: u_int,
-    pub extddata: *mut grid_cell,
-    pub flags: libc::c_int,
-}
-pub const KEYC_WHEELUP_STATUS: unnamed_25 = 268435502;
-pub const CMD_RETURN_NORMAL: cmd_retval = 0;
-pub const TTY_UNKNOWN: unnamed_16 = 6;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_4 {
-    pub le_next: *mut tty_term,
-    pub le_prev: *mut *mut tty_term,
-}
-pub const KEYC_TRIPLECLICK1_STATUS: unnamed_25 = 268435517;
-pub const KEYC_F10: unnamed_25 = 268435535;
-pub const KEYC_MOUSEDRAG3_BORDER: unnamed_25 = 268435491;
-pub const KEYC_DOUBLECLICK1_BORDER: unnamed_25 = 268435509;
-pub type cmdq_type = libc::c_uint;
-pub type unnamed_5 = libc::c_uint;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct key_table {
-    pub name: *const libc::c_char,
-    pub key_bindings: key_bindings,
-    pub references: u_int,
-    pub entry: unnamed_8,
-}
-pub const OPTIONS_TABLE_KEY: options_table_type = 2;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct clients {
-    pub tqh_first: *mut client,
-    pub tqh_last: *mut *mut client,
-}
-pub type bufferevent_data_cb =
-    Option<unsafe extern "C" fn(_: *mut bufferevent, _: *mut libc::c_void)
-               -> ()>;
-pub const KEYC_FOCUS_OUT: unnamed_25 = 268435457;
-pub const LAYOUT_LEFTRIGHT: layout_type = 0;
-pub const KEYC_MOUSEDRAG1_BORDER: unnamed_25 = 268435485;
-pub type uint32_t = libc::c_uint;
-pub const KEYC_KP_ENTER: unnamed_25 = 268435562;
-pub const CMD_FIND_WINDOW: cmd_find_type = 1;
-pub const KEYC_MOUSEDOWN3_STATUS: unnamed_25 = 268435472;
-pub const CMD_RETURN_ERROR: cmd_retval = -1;
-pub const KEYC_TRIPLECLICK3_STATUS: unnamed_25 = 268435523;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct args {
-    pub tree: args_tree,
-    pub argc: libc::c_int,
-    pub argv: *mut *mut libc::c_char,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
@@ -589,89 +421,155 @@ pub struct window_pane {
     pub modelast: time_t,
     pub modeprefix: u_int,
     pub searchstr: *mut libc::c_char,
-    pub entry: unnamed_14,
-    pub tree_entry: unnamed_23,
+    pub entry: unnamed_6,
+    pub tree_entry: unnamed_3,
 }
-pub const KEYC_KP_SIX: unnamed_25 = 268435558;
-pub const KEYC_MOUSEDOWN1_BORDER: unnamed_25 = 268435467;
+pub type options_table_scope = libc::c_uint;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct winlinks {
-    pub rbh_root: *mut winlink,
+pub struct cmdq_list {
+    pub tqh_first: *mut cmdq_item,
+    pub tqh_last: *mut *mut cmdq_item,
 }
-pub type __off_t = libc::c_long;
-pub const KEYC_MOUSEMOVE_PANE: unnamed_25 = 268435462;
-pub type speed_t = libc::c_uint;
-pub const KEYC_MOUSEUP3_STATUS: unnamed_25 = 268435481;
-pub type utf8_state = libc::c_uint;
+pub const KEYC_FOCUS_IN: unnamed_19 = 268435456;
+pub const KEYC_MOUSEUP2_STATUS: unnamed_19 = 268435478;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_6 {
-    pub ev_io_next: unnamed_35,
-    pub ev_timeout: timeval,
+pub struct event_watermark {
+    pub low: size_t,
+    pub high: size_t,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_0 {
+    pub tqe_next: *mut event,
+    pub tqe_prev: *mut *mut event,
+}
+pub type bitstr_t = libc::c_uchar;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_1 {
+    pub ev_signal_next: unnamed_38,
+    pub ev_ncalls: libc::c_short,
+    pub ev_pncalls: *mut libc::c_short,
+}
+pub const KEYC_KP_PLUS: unnamed_19 = 268435555;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct winlink {
+    pub idx: libc::c_int,
+    pub session: *mut session,
+    pub window: *mut window,
+    pub status_width: size_t,
+    pub status_cell: grid_cell,
+    pub status_text: *mut libc::c_char,
+    pub flags: libc::c_int,
+    pub entry: unnamed_5,
+    pub wentry: unnamed_8,
+    pub sentry: unnamed_10,
+}
+pub const KEYC_WHEELDOWN_BORDER: unnamed_19 = 268435506;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct grid_line {
+    pub cellused: u_int,
+    pub cellsize: u_int,
+    pub celldata: *mut grid_cell_entry,
+    pub extdsize: u_int,
+    pub extddata: *mut grid_cell,
+    pub flags: libc::c_int,
+}
+pub const OPTIONS_TABLE_WINDOW: options_table_scope = 3;
+pub const KEYC_DOUBLECLICK3_BORDER: unnamed_19 = 268435515;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct key_binding {
+    pub key: key_code,
+    pub cmdlist: *mut cmd_list,
+    pub flags: libc::c_int,
+    pub entry: unnamed_36,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct tty_terms {
+    pub lh_first: *mut tty_term,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_2 {
+    pub tqe_next: *mut client,
+    pub tqe_prev: *mut *mut client,
+}
+pub const LAYOUT_TOPBOTTOM: layout_type = 1;
+pub const KEYC_F3: unnamed_19 = 268435528;
+pub const KEYC_KP_SEVEN: unnamed_19 = 268435552;
+pub const CMD_RETURN_ERROR: cmd_retval = -1;
+pub type u_int = __u_int;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct args_tree {
+    pub rbh_root: *mut args_entry,
 }
 pub const LAYOUT_WINDOWPANE: layout_type = 2;
-pub type size_t = libc::c_ulong;
-pub const KEYC_TRIPLECLICK2_PANE: unnamed_25 = 268435519;
-pub type unnamed_7 = libc::c_uint;
+pub const KEYC_MOUSEDRAG1_BORDER: unnamed_19 = 268435485;
+pub type job_complete_cb = Option<unsafe extern "C" fn(_: *mut job) -> ()>;
+pub const KEYC_MOUSEDRAG1_STATUS: unnamed_19 = 268435484;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_8 {
-    pub rbe_left: *mut key_table,
-    pub rbe_right: *mut key_table,
-    pub rbe_parent: *mut key_table,
+pub struct screen {
+    pub title: *mut libc::c_char,
+    pub titles: *mut screen_titles,
+    pub grid: *mut grid,
+    pub cx: u_int,
+    pub cy: u_int,
+    pub cstyle: u_int,
+    pub ccolour: *mut libc::c_char,
+    pub rupper: u_int,
+    pub rlower: u_int,
+    pub mode: libc::c_int,
+    pub tabs: *mut bitstr_t,
+    pub sel: screen_sel,
+}
+pub const KEYC_MOUSEDRAGEND2_STATUS: unnamed_19 = 268435496;
+pub const OPTIONS_TABLE_STYLE: options_table_type = 7;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_3 {
+    pub rbe_left: *mut window_pane,
+    pub rbe_right: *mut window_pane,
+    pub rbe_parent: *mut window_pane,
     pub rbe_color: libc::c_int,
 }
-pub const KEYC_KP_STAR: unnamed_25 = 268435550;
-pub const KEYC_MOUSEDRAGEND2_STATUS: unnamed_25 = 268435496;
-pub const KEYC_DOWN: unnamed_25 = 268435546;
-pub const KEYC_KP_MINUS: unnamed_25 = 268435551;
-pub const TTY_VT102: unnamed_16 = 2;
-pub const KEYC_MOUSEDOWN3_BORDER: unnamed_25 = 268435473;
-pub type cmd_retval = libc::c_int;
+pub const KEYC_F10: unnamed_19 = 268435535;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct window_pane_tree {
-    pub rbh_root: *mut window_pane,
+pub struct cmd_list {
+    pub references: libc::c_int,
+    pub list: unnamed_25,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct status_line {
-    pub timer: event,
-    pub status: screen,
-    pub old_status: *mut screen,
-}
-pub const KEYC_TRIPLECLICK2_BORDER: unnamed_25 = 268435521;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_9 {
-    pub tqe_next: *mut cmd,
-    pub tqe_prev: *mut *mut cmd,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_entry {
+pub struct options_table_entry {
     pub name: *const libc::c_char,
-    pub alias: *const libc::c_char,
-    pub args: unnamed_17,
-    pub usage: *const libc::c_char,
-    pub source: cmd_entry_flag,
-    pub target: cmd_entry_flag,
-    pub flags: libc::c_int,
-    pub exec: Option<unsafe extern "C" fn(_: *mut cmd, _: *mut cmdq_item)
-                         -> cmd_retval>,
+    pub type_0: options_table_type,
+    pub scope: options_table_scope,
+    pub minimum: u_int,
+    pub maximum: u_int,
+    pub choices: *mut *const libc::c_char,
+    pub default_str: *const libc::c_char,
+    pub default_num: libc::c_longlong,
+    pub separator: *const libc::c_char,
+    pub style: *const libc::c_char,
 }
-pub const LINE_SEL_LEFT_RIGHT: unnamed_5 = 1;
-pub type u_char = __u_char;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct event {
-    pub ev_active_next: unnamed,
-    pub ev_next: unnamed_33,
-    pub ev_timeout_pos: unnamed_38,
+    pub ev_active_next: unnamed_14,
+    pub ev_next: unnamed_0,
+    pub ev_timeout_pos: unnamed_35,
     pub ev_fd: libc::c_int,
     pub ev_base: *mut event_base,
-    pub _ev: unnamed_29,
+    pub _ev: unnamed_9,
     pub ev_events: libc::c_short,
     pub ev_res: libc::c_short,
     pub ev_flags: libc::c_short,
@@ -683,20 +581,339 @@ pub struct event {
                                                  _: *mut libc::c_void) -> ()>,
     pub ev_arg: *mut libc::c_void,
 }
-pub const KEYC_LEFT: unnamed_25 = 268435547;
+pub const KEYC_MOUSEDRAGEND1_STATUS: unnamed_19 = 268435493;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct session_groups {
-    pub rbh_root: *mut session_group,
+pub struct unnamed_4 {
+    pub rbe_left: *mut window,
+    pub rbe_right: *mut window,
+    pub rbe_parent: *mut window,
+    pub rbe_color: libc::c_int,
 }
+pub const TTY_VT420: unnamed_20 = 5;
+pub const KEYC_PASTE_START: unnamed_19 = 268435458;
+pub const KEYC_KP_SIX: unnamed_19 = 268435558;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct winlink_stack {
+    pub tqh_first: *mut winlink,
+    pub tqh_last: *mut *mut winlink,
+}
+pub type layout_type = libc::c_uint;
+pub const KEYC_DRAGGING: unnamed_19 = 268435461;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_5 {
+    pub rbe_left: *mut winlink,
+    pub rbe_right: *mut winlink,
+    pub rbe_parent: *mut winlink,
+    pub rbe_color: libc::c_int,
+}
+pub type cmdq_type = libc::c_uint;
+pub const LINE_SEL_RIGHT_LEFT: unnamed_30 = 2;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_6 {
+    pub tqe_next: *mut window_pane,
+    pub tqe_prev: *mut *mut window_pane,
+}
+pub const OPTIONS_TABLE_KEY: options_table_type = 2;
+pub const KEYC_MOUSEDOWN2_BORDER: unnamed_19 = 268435470;
+pub const TTY_VT100: unnamed_20 = 0;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct session {
+    pub id: u_int,
+    pub name: *mut libc::c_char,
+    pub cwd: *const libc::c_char,
+    pub creation_time: timeval,
+    pub last_attached_time: timeval,
+    pub activity_time: timeval,
+    pub last_activity_time: timeval,
+    pub lock_timer: event,
+    pub sx: u_int,
+    pub sy: u_int,
+    pub curw: *mut winlink,
+    pub lastw: winlink_stack,
+    pub windows: winlinks,
+    pub statusat: libc::c_int,
+    pub hooks: *mut hooks,
+    pub options: *mut options,
+    pub flags: libc::c_int,
+    pub attached: u_int,
+    pub tio: *mut termios,
+    pub environ: *mut environ,
+    pub references: libc::c_int,
+    pub gentry: unnamed_33,
+    pub entry: unnamed_34,
+}
+pub const KEYC_MOUSEDRAG1_PANE: unnamed_19 = 268435483;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_7 {
+    pub tqe_next: *mut layout_cell,
+    pub tqe_prev: *mut *mut layout_cell,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_8 {
+    pub tqe_next: *mut winlink,
+    pub tqe_prev: *mut *mut winlink,
+}
+pub type cmdq_cb =
+    Option<unsafe extern "C" fn(_: *mut cmdq_item, _: *mut libc::c_void)
+               -> cmd_retval>;
+pub const OPTIONS_TABLE_SERVER: options_table_scope = 1;
+pub const KEYC_KP_FIVE: unnamed_19 = 268435557;
+pub type __u_short = libc::c_ushort;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub union unnamed_9 {
+    ev_io: unnamed_22,
+    ev_signal: unnamed_1,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct timeval {
+    pub tv_sec: __time_t,
+    pub tv_usec: __suseconds_t,
+}
+pub const CMD_RETURN_STOP: cmd_retval = 2;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct key_tables {
+    pub rbh_root: *mut key_table,
+}
+pub const KEYC_PASTE_END: unnamed_19 = 268435459;
+pub const KEYC_MOUSEUP2_BORDER: unnamed_19 = 268435479;
+pub const KEYC_IC: unnamed_19 = 268435538;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_10 {
-    pub rbe_left: *mut session_group,
-    pub rbe_right: *mut session_group,
-    pub rbe_parent: *mut session_group,
+    pub tqe_next: *mut winlink,
+    pub tqe_prev: *mut *mut winlink,
+}
+pub const KEYC_MOUSEDOWN1_PANE: unnamed_19 = 268435465;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct sessions {
+    pub rbh_root: *mut session,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct status_line {
+    pub timer: event,
+    pub status: screen,
+    pub old_status: *mut screen,
+}
+pub type ssize_t = __ssize_t;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_11 {
+    pub le_next: *mut job,
+    pub le_prev: *mut *mut job,
+}
+pub const KEYC_KP_TWO: unnamed_19 = 268435560;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct client {
+    pub name: *const libc::c_char,
+    pub peer: *mut tmuxpeer,
+    pub queue: cmdq_list,
+    pub pid: pid_t,
+    pub fd: libc::c_int,
+    pub event: event,
+    pub retval: libc::c_int,
+    pub creation_time: timeval,
+    pub activity_time: timeval,
+    pub environ: *mut environ,
+    pub jobs: *mut format_job_tree,
+    pub title: *mut libc::c_char,
+    pub cwd: *const libc::c_char,
+    pub term: *mut libc::c_char,
+    pub ttyname: *mut libc::c_char,
+    pub tty: tty,
+    pub written: size_t,
+    pub discarded: size_t,
+    pub redraw: size_t,
+    pub stdin_callback: Option<unsafe extern "C" fn(_: *mut client,
+                                                    _: libc::c_int,
+                                                    _: *mut libc::c_void)
+                                   -> ()>,
+    pub stdin_callback_data: *mut libc::c_void,
+    pub stdin_data: *mut evbuffer,
+    pub stdin_closed: libc::c_int,
+    pub stdout_data: *mut evbuffer,
+    pub stderr_data: *mut evbuffer,
+    pub repeat_timer: event,
+    pub click_timer: event,
+    pub click_button: u_int,
+    pub status: status_line,
+    pub flags: libc::c_int,
+    pub keytable: *mut key_table,
+    pub identify_timer: event,
+    pub identify_callback: Option<unsafe extern "C" fn(_: *mut client,
+                                                       _: *mut window_pane)
+                                      -> ()>,
+    pub identify_callback_data: *mut libc::c_void,
+    pub message_string: *mut libc::c_char,
+    pub message_timer: event,
+    pub message_next: u_int,
+    pub message_log: unnamed_12,
+    pub prompt_string: *mut libc::c_char,
+    pub prompt_buffer: *mut utf8_data,
+    pub prompt_index: size_t,
+    pub prompt_inputcb: prompt_input_cb,
+    pub prompt_freecb: prompt_free_cb,
+    pub prompt_data: *mut libc::c_void,
+    pub prompt_hindex: u_int,
+    pub prompt_mode: unnamed_31,
+    pub prompt_flags: libc::c_int,
+    pub session: *mut session,
+    pub last_session: *mut session,
+    pub wlmouse: libc::c_int,
+    pub references: libc::c_int,
+    pub entry: unnamed_2,
+}
+pub type __suseconds_t = libc::c_long;
+pub const CMDQ_COMMAND: cmdq_type = 0;
+pub type job_update_cb = Option<unsafe extern "C" fn(_: *mut job) -> ()>;
+pub const CMD_RETURN_WAIT: cmd_retval = 1;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct joblist {
+    pub lh_first: *mut job,
+}
+pub const OPTIONS_TABLE_STRING: options_table_type = 0;
+pub const KEYC_F12: unnamed_19 = 268435537;
+pub const KEYC_TRIPLECLICK3_STATUS: unnamed_19 = 268435523;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_12 {
+    pub tqh_first: *mut message_entry,
+    pub tqh_last: *mut *mut message_entry,
+}
+pub const KEYC_KP_SLASH: unnamed_19 = 268435549;
+pub type job_free_cb =
+    Option<unsafe extern "C" fn(_: *mut libc::c_void) -> ()>;
+pub type cmd_find_type = libc::c_uint;
+pub const UTF8_MORE: utf8_state = 0;
+pub const KEYC_KP_EIGHT: unnamed_19 = 268435553;
+pub const KEYC_MOUSEDOWN1_STATUS: unnamed_19 = 268435466;
+pub type __time_t = libc::c_long;
+pub const KEYC_TRIPLECLICK2_PANE: unnamed_19 = 268435519;
+pub const LAYOUT_LEFTRIGHT: layout_type = 0;
+pub const KEYC_F7: unnamed_19 = 268435532;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_13 {
+    pub rbe_left: *mut key_table,
+    pub rbe_right: *mut key_table,
+    pub rbe_parent: *mut key_table,
     pub rbe_color: libc::c_int,
 }
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_14 {
+    pub tqe_next: *mut event,
+    pub tqe_prev: *mut *mut event,
+}
+pub type cc_t = libc::c_uchar;
+pub type wchar_t = libc::c_int;
+pub const KEYC_MOUSEDOWN2_STATUS: unnamed_19 = 268435469;
+pub const CMD_FIND_PANE: cmd_find_type = 0;
+pub const KEYC_TRIPLECLICK3_BORDER: unnamed_19 = 268435524;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct tty_term {
+    pub name: *mut libc::c_char,
+    pub references: u_int,
+    pub acs: [[libc::c_char; 2]; 256],
+    pub codes: *mut tty_code,
+    pub flags: libc::c_int,
+    pub entry: unnamed_15,
+}
+pub const KEYC_HOME: unnamed_19 = 268435540;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_15 {
+    pub le_next: *mut tty_term,
+    pub le_prev: *mut *mut tty_term,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct screen_sel {
+    pub flag: libc::c_int,
+    pub hidden: libc::c_int,
+    pub rectflag: libc::c_int,
+    pub lineflag: unnamed_30,
+    pub modekeys: libc::c_int,
+    pub sx: u_int,
+    pub sy: u_int,
+    pub ex: u_int,
+    pub ey: u_int,
+    pub cell: grid_cell,
+}
+pub const KEYC_KP_PERIOD: unnamed_19 = 268435564;
+pub type time_t = __time_t;
+pub const KEYC_MOUSEUP3_PANE: unnamed_19 = 268435480;
+pub const CMD_RETURN_NORMAL: cmd_retval = 0;
+pub type size_t = libc::c_ulong;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct key_bindings {
+    pub rbh_root: *mut key_binding,
+}
+pub const OPTIONS_TABLE_ATTRIBUTES: options_table_type = 4;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct window_mode {
+    pub name: *const libc::c_char,
+    pub init: Option<unsafe extern "C" fn(_: *mut window_pane,
+                                          _: *mut cmd_find_state,
+                                          _: *mut args) -> *mut screen>,
+    pub free: Option<unsafe extern "C" fn(_: *mut window_pane) -> ()>,
+    pub resize: Option<unsafe extern "C" fn(_: *mut window_pane, _: u_int,
+                                            _: u_int) -> ()>,
+    pub key: Option<unsafe extern "C" fn(_: *mut window_pane, _: *mut client,
+                                         _: *mut session, _: key_code,
+                                         _: *mut mouse_event) -> ()>,
+    pub key_table: Option<unsafe extern "C" fn(_: *mut window_pane)
+                              -> *const libc::c_char>,
+    pub command: Option<unsafe extern "C" fn(_: *mut window_pane,
+                                             _: *mut client, _: *mut session,
+                                             _: *mut args,
+                                             _: *mut mouse_event) -> ()>,
+}
+pub const KEYC_RIGHT: unnamed_19 = 268435548;
+pub type unnamed_16 = libc::c_uint;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct tty_key {
+    pub ch: libc::c_char,
+    pub key: key_code,
+    pub left: *mut tty_key,
+    pub right: *mut tty_key,
+    pub next: *mut tty_key,
+}
+pub const TTY_VT102: unnamed_20 = 2;
+pub const KEYC_MOUSEDOWN3_STATUS: unnamed_19 = 268435472;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct args {
+    pub tree: args_tree,
+    pub argc: libc::c_int,
+    pub argv: *mut *mut libc::c_char,
+}
+pub type u_char = __u_char;
+pub type uint16_t = libc::c_ushort;
+pub type pid_t = __pid_t;
+pub const KEYC_MOUSEDRAGEND3_STATUS: unnamed_19 = 268435499;
+pub const KEYC_KP_MINUS: unnamed_19 = 268435551;
+pub const KEYC_WHEELDOWN_STATUS: unnamed_19 = 268435505;
+pub const KEYC_F8: unnamed_19 = 268435533;
+pub const KEYC_TRIPLECLICK3_PANE: unnamed_19 = 268435522;
+pub const KEYC_F2: unnamed_19 = 268435527;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_FILE {
@@ -730,131 +947,62 @@ pub struct _IO_FILE {
     pub _mode: libc::c_int,
     pub _unused2: [libc::c_char; 20],
 }
-pub const LAYOUT_TOPBOTTOM: layout_type = 1;
-pub const KEYC_MOUSEUP1_STATUS: unnamed_25 = 268435475;
-pub const KEYC_DOUBLECLICK2_BORDER: unnamed_25 = 268435512;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_11 {
-    pub rbe_left: *mut session,
-    pub rbe_right: *mut session,
-    pub rbe_parent: *mut session,
-    pub rbe_color: libc::c_int,
-}
-pub const KEYC_KP_PLUS: unnamed_25 = 268435555;
-pub const OPTIONS_TABLE_WINDOW: options_table_scope = 3;
-pub type wchar_t = libc::c_int;
-pub const KEYC_MOUSEDRAGEND1_STATUS: unnamed_25 = 268435493;
-pub const UTF8_MORE: utf8_state = 0;
-pub type layout_type = libc::c_uint;
-pub type __ssize_t = libc::c_long;
-pub const KEYC_DOUBLECLICK2_STATUS: unnamed_25 = 268435511;
-pub type options_table_type = libc::c_uint;
-pub const KEYC_MOUSEUP1_PANE: unnamed_25 = 268435474;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct key_binding {
-    pub key: key_code,
-    pub cmdlist: *mut cmd_list,
-    pub flags: libc::c_int,
-    pub entry: unnamed_12,
-}
-pub const KEYC_MOUSEDOWN3_PANE: unnamed_25 = 268435471;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_12 {
-    pub rbe_left: *mut key_binding,
-    pub rbe_right: *mut key_binding,
-    pub rbe_parent: *mut key_binding,
-    pub rbe_color: libc::c_int,
-}
-pub const KEYC_TRIPLECLICK3_PANE: unnamed_25 = 268435522;
-pub const KEYC_MOUSEDRAGEND3_STATUS: unnamed_25 = 268435499;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct tty {
-    pub client: *mut client,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub cx: u_int,
-    pub cy: u_int,
-    pub cstyle: u_int,
-    pub ccolour: *mut libc::c_char,
-    pub mode: libc::c_int,
-    pub rlower: u_int,
-    pub rupper: u_int,
-    pub rleft: u_int,
-    pub rright: u_int,
-    pub fd: libc::c_int,
-    pub event_in: event,
-    pub in_0: *mut evbuffer,
-    pub event_out: event,
-    pub out: *mut evbuffer,
-    pub timer: event,
-    pub discarded: size_t,
-    pub tio: termios,
-    pub cell: grid_cell,
-    pub last_wp: libc::c_int,
-    pub last_cell: grid_cell,
-    pub flags: libc::c_int,
-    pub term: *mut tty_term,
-    pub term_name: *mut libc::c_char,
-    pub term_flags: libc::c_int,
-    pub term_type: unnamed_16,
-    pub mouse: mouse_event,
-    pub mouse_drag_flag: libc::c_int,
-    pub mouse_drag_update: Option<unsafe extern "C" fn(_: *mut client,
-                                                       _: *mut mouse_event)
-                                      -> ()>,
-    pub mouse_drag_release: Option<unsafe extern "C" fn(_: *mut client,
-                                                        _: *mut mouse_event)
-                                       -> ()>,
-    pub key_timer: event,
-    pub key_tree: *mut tty_key,
+pub union unnamed_17 {
+    __u6_addr8: [uint8_t; 16],
+    __u6_addr16: [uint16_t; 8],
+    __u6_addr32: [uint32_t; 4],
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct winlink {
-    pub idx: libc::c_int,
-    pub session: *mut session,
-    pub window: *mut window,
-    pub status_width: size_t,
-    pub status_cell: grid_cell,
-    pub status_text: *mut libc::c_char,
-    pub flags: libc::c_int,
-    pub entry: unnamed_2,
-    pub wentry: unnamed_27,
-    pub sentry: unnamed_1,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub union unnamed_13 {
+pub union unnamed_18 {
     offset: u_int,
-    data: unnamed_31,
+    data: unnamed_37,
 }
-pub const KEYC_MOUSEDOWN2_PANE: unnamed_25 = 268435468;
+pub const KEYC_FOCUS_OUT: unnamed_19 = 268435457;
+pub const KEYC_MOUSEUP1_STATUS: unnamed_19 = 268435475;
+pub const KEYC_MOUSEDRAG2_STATUS: unnamed_19 = 268435487;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct key_bindings {
-    pub rbh_root: *mut key_binding,
+pub struct window_panes {
+    pub tqh_first: *mut window_pane,
+    pub tqh_last: *mut *mut window_pane,
+}
+pub const KEYC_TRIPLECLICK2_BORDER: unnamed_19 = 268435521;
+pub const KEYC_DC: unnamed_19 = 268435539;
+pub const OPTIONS_TABLE_SESSION: options_table_scope = 2;
+pub const KEYC_F5: unnamed_19 = 268435530;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct clients {
+    pub tqh_first: *mut client,
+    pub tqh_last: *mut *mut client,
 }
 pub type prompt_free_cb =
     Option<unsafe extern "C" fn(_: *mut libc::c_void) -> ()>;
-pub type job_update_cb = Option<unsafe extern "C" fn(_: *mut job) -> ()>;
-pub type options_table_scope = libc::c_uint;
+pub const KEYC_F6: unnamed_19 = 268435531;
+pub type utf8_state = libc::c_uint;
+pub const KEYC_DOUBLECLICK2_PANE: unnamed_19 = 268435510;
+pub type unnamed_19 = libc::c_uint;
+pub const KEYC_WHEELDOWN_PANE: unnamed_19 = 268435504;
+pub const KEYC_MOUSEDRAGEND3_PANE: unnamed_19 = 268435498;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct tty_terms {
-    pub lh_first: *mut tty_term,
+pub struct job {
+    pub state: unnamed_16,
+    pub flags: libc::c_int,
+    pub cmd: *mut libc::c_char,
+    pub pid: pid_t,
+    pub status: libc::c_int,
+    pub fd: libc::c_int,
+    pub event: *mut bufferevent,
+    pub updatecb: job_update_cb,
+    pub completecb: job_complete_cb,
+    pub freecb: job_free_cb,
+    pub data: *mut libc::c_void,
+    pub entry: unnamed_11,
 }
-pub const OPTIONS_TABLE_SERVER: options_table_scope = 1;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_14 {
-    pub tqe_next: *mut window_pane,
-    pub tqe_prev: *mut *mut window_pane,
-}
-pub const KEYC_PPAGE: unnamed_25 = 268435543;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct termios {
@@ -867,161 +1015,70 @@ pub struct termios {
     pub c_ispeed: speed_t,
     pub c_ospeed: speed_t,
 }
-pub const KEYC_TRIPLECLICK3_BORDER: unnamed_25 = 268435524;
-pub const KEYC_WHEELUP_BORDER: unnamed_25 = 268435503;
-pub const KEYC_MOUSEDRAGEND1_PANE: unnamed_25 = 268435492;
-pub const KEYC_KP_FIVE: unnamed_25 = 268435557;
-pub const KEYC_MOUSEDRAG2_PANE: unnamed_25 = 268435486;
-pub const KEYC_TRIPLECLICK1_BORDER: unnamed_25 = 268435518;
-pub const KEYC_RIGHT: unnamed_25 = 268435548;
-pub type cmd_find_type = libc::c_uint;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct args_tree {
-    pub rbh_root: *mut args_entry,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub union unnamed_15 {
-    __u6_addr8: [uint8_t; 16],
-    __u6_addr16: [uint16_t; 8],
-    __u6_addr32: [uint32_t; 4],
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd {
-    pub entry: *const cmd_entry,
-    pub args: *mut args,
-    pub file: *mut libc::c_char,
-    pub line: u_int,
-    pub flags: libc::c_int,
-    pub qentry: unnamed_9,
-}
-pub type key_code = libc::c_ulonglong;
-pub type unnamed_16 = libc::c_uint;
-pub const KEYC_PASTE_START: unnamed_25 = 268435458;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct tty_key {
-    pub ch: libc::c_char,
-    pub key: key_code,
-    pub left: *mut tty_key,
-    pub right: *mut tty_key,
-    pub next: *mut tty_key,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct message_entry {
-    pub msg: *mut libc::c_char,
-    pub msg_num: u_int,
-    pub msg_time: time_t,
-    pub entry: unnamed_36,
-}
-pub type __pid_t = libc::c_int;
-pub const JOB_DEAD: unnamed_20 = 1;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_17 {
-    pub template: *const libc::c_char,
-    pub lower: libc::c_int,
-    pub upper: libc::c_int,
-}
-pub const KEYC_MOUSEDRAG2_BORDER: unnamed_25 = 268435488;
-pub const KEYC_FOCUS_IN: unnamed_25 = 268435456;
-pub type __u_short = libc::c_ushort;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_18 {
-    pub tqe_next: *mut layout_cell,
-    pub tqe_prev: *mut *mut layout_cell,
-}
-pub const KEYC_MOUSEDOWN2_BORDER: unnamed_25 = 268435470;
-pub const KEYC_KP_SEVEN: unnamed_25 = 268435552;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window_mode {
-    pub name: *const libc::c_char,
-    pub init: Option<unsafe extern "C" fn(_: *mut window_pane,
-                                          _: *mut cmd_find_state,
-                                          _: *mut args) -> *mut screen>,
-    pub free: Option<unsafe extern "C" fn(_: *mut window_pane) -> ()>,
-    pub resize: Option<unsafe extern "C" fn(_: *mut window_pane, _: u_int,
-                                            _: u_int) -> ()>,
-    pub key: Option<unsafe extern "C" fn(_: *mut window_pane, _: *mut client,
-                                         _: *mut session, _: key_code,
-                                         _: *mut mouse_event) -> ()>,
-    pub key_table: Option<unsafe extern "C" fn(_: *mut window_pane)
-                              -> *const libc::c_char>,
-    pub command: Option<unsafe extern "C" fn(_: *mut window_pane,
-                                             _: *mut client, _: *mut session,
-                                             _: *mut args,
-                                             _: *mut mouse_event) -> ()>,
-}
-pub const OPTIONS_TABLE_COLOUR: options_table_type = 3;
-pub type job_complete_cb = Option<unsafe extern "C" fn(_: *mut job) -> ()>;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct in6_addr {
-    pub __in6_u: unnamed_15,
-}
-pub const KEYC_MOUSEMOVE_BORDER: unnamed_25 = 268435464;
-pub const OPTIONS_TABLE_NONE: options_table_scope = 0;
-pub const KEYC_NPAGE: unnamed_25 = 268435542;
-pub const JOB_CLOSED: unnamed_20 = 2;
-pub type uint8_t = libc::c_uchar;
-pub const KEYC_DOUBLECLICK1_PANE: unnamed_25 = 268435507;
-pub const KEYC_F1: unnamed_25 = 268435526;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_19 {
-    pub ev_signal_next: unnamed_0,
-    pub ev_ncalls: libc::c_short,
-    pub ev_pncalls: *mut libc::c_short,
-}
-pub type __u_char = libc::c_uchar;
+pub const KEYC_BSPACE: unnamed_19 = 268435525;
 pub type unnamed_20 = libc::c_uint;
-pub const KEYC_KP_PERIOD: unnamed_25 = 268435564;
+pub const KEYC_MOUSEDRAGEND3_BORDER: unnamed_19 = 268435500;
+pub const KEYC_TRIPLECLICK1_BORDER: unnamed_19 = 268435518;
+pub const KEYC_MOUSEDRAGEND2_PANE: unnamed_19 = 268435495;
+pub const PROMPT_ENTRY: unnamed_31 = 0;
+pub type __ssize_t = libc::c_long;
+pub const KEYC_KP_FOUR: unnamed_19 = 268435556;
+pub const OPTIONS_TABLE_ARRAY: options_table_type = 8;
+pub type prompt_input_cb =
+    Option<unsafe extern "C" fn(_: *mut client, _: *mut libc::c_void,
+                                _: *const libc::c_char, _: libc::c_int)
+               -> libc::c_int>;
+pub type _IO_lock_t = ();
+pub type speed_t = libc::c_uint;
+pub const JOB_DEAD: unnamed_16 = 1;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct windows {
-    pub rbh_root: *mut window,
+pub struct mouse_event {
+    pub valid: libc::c_int,
+    pub key: key_code,
+    pub statusat: libc::c_int,
+    pub x: u_int,
+    pub y: u_int,
+    pub b: u_int,
+    pub lx: u_int,
+    pub ly: u_int,
+    pub lb: u_int,
+    pub s: libc::c_int,
+    pub w: libc::c_int,
+    pub wp: libc::c_int,
+    pub sgr_type: u_int,
+    pub sgr_b: u_int,
 }
-pub const KEYC_MOUSEUP2_PANE: unnamed_25 = 268435477;
+pub const KEYC_WHEELUP_PANE: unnamed_19 = 268435501;
+pub const KEYC_MOUSEDOWN1_BORDER: unnamed_19 = 268435467;
+pub const KEYC_F9: unnamed_19 = 268435534;
+pub const CMD_FIND_WINDOW: cmd_find_type = 1;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_21 {
-    pub tqh_first: *mut winlink,
-    pub tqh_last: *mut *mut winlink,
+    pub tqe_next: *mut cmdq_item,
+    pub tqe_prev: *mut *mut cmdq_item,
 }
+pub const KEYC_KP_ENTER: unnamed_19 = 268435562;
+pub const JOB_CLOSED: unnamed_16 = 2;
+pub const KEYC_WHEELUP_STATUS: unnamed_19 = 268435502;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct options_table_entry {
+pub struct session_group {
     pub name: *const libc::c_char,
-    pub type_0: options_table_type,
-    pub scope: options_table_scope,
-    pub minimum: u_int,
-    pub maximum: u_int,
-    pub choices: *mut *const libc::c_char,
-    pub default_str: *const libc::c_char,
-    pub default_num: libc::c_longlong,
-    pub separator: *const libc::c_char,
-    pub style: *const libc::c_char,
+    pub sessions: unnamed_27,
+    pub entry: unnamed_29,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct screen_sel {
-    pub flag: libc::c_int,
-    pub hidden: libc::c_int,
-    pub rectflag: libc::c_int,
-    pub lineflag: unnamed_5,
-    pub modekeys: libc::c_int,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub ex: u_int,
-    pub ey: u_int,
-    pub cell: grid_cell,
+pub struct unnamed_22 {
+    pub ev_io_next: unnamed_28,
+    pub ev_timeout: timeval,
 }
-pub const KEYC_MOUSEUP3_PANE: unnamed_25 = 268435480;
+pub const KEYC_MOUSEUP1_BORDER: unnamed_19 = 268435476;
+pub const KEYC_MOUSEDRAGEND1_PANE: unnamed_19 = 268435492;
+pub const KEYC_TRIPLECLICK2_STATUS: unnamed_19 = 268435520;
+pub const CMDQ_CALLBACK: cmdq_type = 1;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct cmdq_item {
@@ -1041,72 +1098,15 @@ pub struct cmdq_item {
     pub cmd: *mut cmd,
     pub cb: cmdq_cb,
     pub data: *mut libc::c_void,
-    pub entry: unnamed_34,
+    pub entry: unnamed_21,
 }
-pub const KEYC_WHEELUP_PANE: unnamed_25 = 268435501;
-pub type u_short = __u_short;
+pub const LINE_SEL_NONE: unnamed_30 = 0;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct window_panes {
-    pub tqh_first: *mut window_pane,
-    pub tqh_last: *mut *mut window_pane,
+pub struct unnamed_23 {
+    pub tqe_next: *mut window,
+    pub tqe_prev: *mut *mut window,
 }
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_22 {
-    pub tqe_next: *mut session,
-    pub tqe_prev: *mut *mut session,
-}
-pub const CMD_RETURN_STOP: cmd_retval = 2;
-pub const TTY_VT320: unnamed_16 = 4;
-pub const LINE_SEL_RIGHT_LEFT: unnamed_5 = 2;
-pub const KEYC_MOUSEDRAGEND3_PANE: unnamed_25 = 268435498;
-pub type __time_t = libc::c_long;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct key_tables {
-    pub rbh_root: *mut key_table,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct window {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub name_event: event,
-    pub name_time: timeval,
-    pub alerts_timer: event,
-    pub activity_time: timeval,
-    pub active: *mut window_pane,
-    pub last: *mut window_pane,
-    pub panes: window_panes,
-    pub lastlayout: libc::c_int,
-    pub layout_root: *mut layout_cell,
-    pub saved_layout_root: *mut layout_cell,
-    pub old_layout: *mut libc::c_char,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub flags: libc::c_int,
-    pub alerts_queued: libc::c_int,
-    pub alerts_entry: unnamed_39,
-    pub options: *mut options,
-    pub style: grid_cell,
-    pub active_style: grid_cell,
-    pub references: u_int,
-    pub winlinks: unnamed_21,
-    pub entry: unnamed_3,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct grid_cell_entry {
-    pub flags: u_char,
-    pub unnamed: unnamed_13,
-}
-pub const KEYC_MOUSEUP1_BORDER: unnamed_25 = 268435476;
-pub const KEYC_TRIPLECLICK1_PANE: unnamed_25 = 268435516;
-pub const KEYC_DOUBLECLICK3_STATUS: unnamed_25 = 268435514;
-pub const JOB_RUNNING: unnamed_20 = 0;
-pub const LINE_SEL_NONE: unnamed_5 = 0;
-pub const OPTIONS_TABLE_STRING: options_table_type = 0;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct layout_cell {
@@ -1118,106 +1118,8 @@ pub struct layout_cell {
     pub yoff: u_int,
     pub wp: *mut window_pane,
     pub cells: layout_cells,
-    pub entry: unnamed_18,
+    pub entry: unnamed_7,
 }
-pub const KEYC_F2: unnamed_25 = 268435527;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_23 {
-    pub rbe_left: *mut window_pane,
-    pub rbe_right: *mut window_pane,
-    pub rbe_parent: *mut window_pane,
-    pub rbe_color: libc::c_int,
-}
-pub const KEYC_MOUSEDRAGEND2_PANE: unnamed_25 = 268435495;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct timeval {
-    pub tv_sec: __time_t,
-    pub tv_usec: __suseconds_t,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct layout_cells {
-    pub tqh_first: *mut layout_cell,
-    pub tqh_last: *mut *mut layout_cell,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_24 {
-    pub tqh_first: *mut message_entry,
-    pub tqh_last: *mut *mut message_entry,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct job {
-    pub state: unnamed_20,
-    pub flags: libc::c_int,
-    pub cmd: *mut libc::c_char,
-    pub pid: pid_t,
-    pub status: libc::c_int,
-    pub fd: libc::c_int,
-    pub event: *mut bufferevent,
-    pub updatecb: job_update_cb,
-    pub completecb: job_complete_cb,
-    pub freecb: job_free_cb,
-    pub data: *mut libc::c_void,
-    pub entry: unnamed_37,
-}
-pub const KEYC_MOUSEDRAG1_PANE: unnamed_25 = 268435483;
-pub const KEYC_PASTE_END: unnamed_25 = 268435459;
-pub const KEYC_MOUSEMOVE_STATUS: unnamed_25 = 268435463;
-pub const KEYC_F5: unnamed_25 = 268435530;
-pub type unnamed_25 = libc::c_uint;
-pub const KEYC_IC: unnamed_25 = 268435538;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_26 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
-pub const KEYC_F6: unnamed_25 = 268435531;
-pub const OPTIONS_TABLE_CHOICE: options_table_type = 6;
-pub type bufferevent_event_cb =
-    Option<unsafe extern "C" fn(_: *mut bufferevent, _: libc::c_short,
-                                _: *mut libc::c_void) -> ()>;
-pub const KEYC_KP_NINE: unnamed_25 = 268435554;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct screen {
-    pub title: *mut libc::c_char,
-    pub titles: *mut screen_titles,
-    pub grid: *mut grid,
-    pub cx: u_int,
-    pub cy: u_int,
-    pub cstyle: u_int,
-    pub ccolour: *mut libc::c_char,
-    pub rupper: u_int,
-    pub rlower: u_int,
-    pub mode: libc::c_int,
-    pub tabs: *mut bitstr_t,
-    pub sel: screen_sel,
-}
-pub const KEYC_MOUSE: unnamed_25 = 268435460;
-pub const KEYC_MOUSEDRAG3_PANE: unnamed_25 = 268435489;
-pub const KEYC_DRAGGING: unnamed_25 = 268435461;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_27 {
-    pub tqe_next: *mut winlink,
-    pub tqe_prev: *mut *mut winlink,
-}
-pub type __off64_t = libc::c_long;
-pub const KEYC_F9: unnamed_25 = 268435534;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct _IO_marker {
-    pub _next: *mut _IO_marker,
-    pub _sbuf: *mut _IO_FILE,
-    pub _pos: libc::c_int,
-}
-pub type cc_t = libc::c_uchar;
-pub const TTY_VT220: unnamed_16 = 3;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct grid_cell {
@@ -1227,75 +1129,124 @@ pub struct grid_cell {
     pub bg: libc::c_int,
     pub data: utf8_data,
 }
-pub const KEYC_MOUSEDRAGEND1_BORDER: unnamed_25 = 268435494;
-pub const CMDQ_COMMAND: cmdq_type = 0;
-pub const KEYC_BSPACE: unnamed_25 = 268435525;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_28 {
+pub struct in6_addr {
+    pub __in6_u: unnamed_17,
+}
+pub const UTF8_DONE: utf8_state = 1;
+pub const UTF8_ERROR: utf8_state = 2;
+pub const KEYC_KP_THREE: unnamed_19 = 268435561;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_24 {
+    pub template: *const libc::c_char,
+    pub lower: libc::c_int,
+    pub upper: libc::c_int,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct grid_cell_entry {
+    pub flags: u_char,
+    pub unnamed: unnamed_18,
+}
+pub type u_short = __u_short;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct cmd_entry {
+    pub name: *const libc::c_char,
+    pub alias: *const libc::c_char,
+    pub args: unnamed_24,
+    pub usage: *const libc::c_char,
+    pub source: cmd_entry_flag,
+    pub target: cmd_entry_flag,
+    pub flags: libc::c_int,
+    pub exec: Option<unsafe extern "C" fn(_: *mut cmd, _: *mut cmdq_item)
+                         -> cmd_retval>,
+}
+pub type tcflag_t = libc::c_uint;
+pub const KEYC_MOUSEDRAG3_STATUS: unnamed_19 = 268435490;
+pub const KEYC_NPAGE: unnamed_19 = 268435542;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_25 {
     pub tqh_first: *mut cmd,
     pub tqh_last: *mut *mut cmd,
 }
-pub const KEYC_F3: unnamed_25 = 268435528;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct mouse_event {
-    pub valid: libc::c_int,
-    pub key: key_code,
-    pub statusat: libc::c_int,
-    pub x: u_int,
-    pub y: u_int,
-    pub b: u_int,
-    pub lx: u_int,
-    pub ly: u_int,
-    pub lb: u_int,
-    pub s: libc::c_int,
-    pub w: libc::c_int,
-    pub wp: libc::c_int,
-    pub sgr_type: u_int,
-    pub sgr_b: u_int,
-}
-pub const KEYC_END: unnamed_25 = 268435541;
 pub type __u_int = libc::c_uint;
-pub type prompt_input_cb =
-    Option<unsafe extern "C" fn(_: *mut client, _: *mut libc::c_void,
-                                _: *const libc::c_char, _: libc::c_int)
-               -> libc::c_int>;
-pub const KEYC_DC: unnamed_25 = 268435539;
-pub const KEYC_KP_SLASH: unnamed_25 = 268435549;
-pub const KEYC_F12: unnamed_25 = 268435537;
-pub const KEYC_DOUBLECLICK3_BORDER: unnamed_25 = 268435515;
+pub const KEYC_DOUBLECLICK3_PANE: unnamed_19 = 268435513;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub union unnamed_29 {
-    ev_io: unnamed_6,
-    ev_signal: unnamed_19,
+pub struct cmd_entry_flag {
+    pub flag: libc::c_char,
+    pub type_0: cmd_find_type,
+    pub flags: libc::c_int,
 }
-pub const UTF8_ERROR: utf8_state = 2;
-pub const CMD_FIND_SESSION: cmd_find_type = 2;
-pub type job_free_cb =
-    Option<unsafe extern "C" fn(_: *mut libc::c_void) -> ()>;
-pub const KEYC_MOUSEDRAG2_STATUS: unnamed_25 = 268435487;
-pub const KEYC_F4: unnamed_25 = 268435529;
+pub const KEYC_MOUSEDOWN2_PANE: unnamed_19 = 268435468;
+pub type uint32_t = libc::c_uint;
+pub const KEYC_DOUBLECLICK3_STATUS: unnamed_19 = 268435514;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_30 {
-    pub tqe_next: *mut client,
-    pub tqe_prev: *mut *mut client,
+pub struct unnamed_26 {
+    pub tqe_next: *mut message_entry,
+    pub tqe_prev: *mut *mut message_entry,
+}
+pub const KEYC_TRIPLECLICK1_PANE: unnamed_19 = 268435516;
+pub const KEYC_MOUSEDRAG2_PANE: unnamed_19 = 268435486;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_27 {
+    pub tqh_first: *mut session,
+    pub tqh_last: *mut *mut session,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_31 {
-    pub attr: u_char,
-    pub fg: u_char,
-    pub bg: u_char,
-    pub data: u_char,
+pub struct _IO_marker {
+    pub _next: *mut _IO_marker,
+    pub _sbuf: *mut _IO_FILE,
+    pub _pos: libc::c_int,
 }
-pub type time_t = __time_t;
-pub const KEYC_DOUBLECLICK2_PANE: unnamed_25 = 268435510;
-pub const KEYC_MOUSEDOWN1_STATUS: unnamed_25 = 268435466;
-pub const KEYC_KP_FOUR: unnamed_25 = 268435556;
-pub const KEYC_KP_THREE: unnamed_25 = 268435561;
+pub const KEYC_F11: unnamed_19 = 268435536;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct key_table {
+    pub name: *const libc::c_char,
+    pub key_bindings: key_bindings,
+    pub references: u_int,
+    pub entry: unnamed_13,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_28 {
+    pub tqe_next: *mut event,
+    pub tqe_prev: *mut *mut event,
+}
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct utf8_data {
+    pub data: [u_char; 9],
+    pub have: u_char,
+    pub size: u_char,
+    pub width: u_char,
+}
+pub const KEYC_MOUSEUP3_STATUS: unnamed_19 = 268435481;
+pub const LINE_SEL_LEFT_RIGHT: unnamed_30 = 1;
+pub const KEYC_DOUBLECLICK1_BORDER: unnamed_19 = 268435509;
+pub const KEYC_MOUSE: unnamed_19 = 268435460;
+pub const TTY_VT220: unnamed_20 = 3;
+pub const KEYC_MOUSEMOVE_STATUS: unnamed_19 = 268435463;
+pub const KEYC_MOUSEDRAGEND2_BORDER: unnamed_19 = 268435497;
+pub type bufferevent_data_cb =
+    Option<unsafe extern "C" fn(_: *mut bufferevent, _: *mut libc::c_void)
+               -> ()>;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct winlinks {
+    pub rbh_root: *mut winlink,
+}
+pub const KEYC_MOUSEDRAGEND1_BORDER: unnamed_19 = 268435494;
+pub const KEYC_F4: unnamed_19 = 268435529;
+pub const KEYC_MOUSEDRAG3_PANE: unnamed_19 = 268435489;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct bufferevent {
@@ -1315,132 +1266,83 @@ pub struct bufferevent {
     pub timeout_write: timeval,
     pub enabled: libc::c_short,
 }
+pub const KEYC_MOUSEUP2_PANE: unnamed_19 = 268435477;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct winlink_stack {
-    pub tqh_first: *mut winlink,
-    pub tqh_last: *mut *mut winlink,
+pub struct unnamed_29 {
+    pub rbe_left: *mut session_group,
+    pub rbe_right: *mut session_group,
+    pub rbe_parent: *mut session_group,
+    pub rbe_color: libc::c_int,
 }
-pub const KEYC_KP_EIGHT: unnamed_25 = 268435553;
-pub type cmdq_cb =
-    Option<unsafe extern "C" fn(_: *mut cmdq_item, _: *mut libc::c_void)
-               -> cmd_retval>;
-pub const KEYC_WHEELDOWN_PANE: unnamed_25 = 268435504;
-pub type tcflag_t = libc::c_uint;
-pub const KEYC_DOUBLECLICK1_STATUS: unnamed_25 = 268435508;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmdq_shared {
-    pub references: libc::c_int,
-    pub flags: libc::c_int,
-    pub formats: *mut format_tree,
-    pub mouse: mouse_event,
-    pub current: cmd_find_state,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct cmd_find_state {
-    pub flags: libc::c_int,
-    pub current: *mut cmd_find_state,
-    pub s: *mut session,
-    pub wl: *mut winlink,
-    pub w: *mut window,
-    pub wp: *mut window_pane,
-    pub idx: libc::c_int,
-}
-pub type _IO_lock_t = ();
+pub const KEYC_DOUBLECLICK1_PANE: unnamed_19 = 268435507;
+pub type unnamed_30 = libc::c_uint;
+pub type unnamed_31 = libc::c_uint;
+pub const KEYC_MOUSEUP1_PANE: unnamed_19 = 268435474;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_32 {
-    pub tqh_first: *mut session,
-    pub tqh_last: *mut *mut session,
+    pub tqh_first: *mut winlink,
+    pub tqh_last: *mut *mut winlink,
 }
-pub const OPTIONS_TABLE_ARRAY: options_table_type = 8;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct layout_cells {
+    pub tqh_first: *mut layout_cell,
+    pub tqh_last: *mut *mut layout_cell,
+}
+pub type options_table_type = libc::c_uint;
+pub const KEYC_KP_NINE: unnamed_19 = 268435554;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_33 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
+    pub tqe_next: *mut session,
+    pub tqe_prev: *mut *mut session,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_34 {
-    pub tqe_next: *mut cmdq_item,
-    pub tqe_prev: *mut *mut cmdq_item,
+    pub rbe_left: *mut session,
+    pub rbe_right: *mut session,
+    pub rbe_parent: *mut session,
+    pub rbe_color: libc::c_int,
 }
-pub const KEYC_WHEELDOWN_BORDER: unnamed_25 = 268435506;
-pub const KEYC_MOUSEUP2_BORDER: unnamed_25 = 268435479;
-pub const KEYC_MOUSEDRAGEND2_BORDER: unnamed_25 = 268435497;
-pub type FILE = _IO_FILE;
+pub const KEYC_DOUBLECLICK1_STATUS: unnamed_19 = 268435508;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_35 {
-    pub tqe_next: *mut event,
-    pub tqe_prev: *mut *mut event,
-}
-pub const TTY_VT100: unnamed_16 = 0;
-pub const KEYC_KP_TWO: unnamed_25 = 268435560;
-pub const KEYC_F8: unnamed_25 = 268435533;
-pub const KEYC_MOUSEDOWN2_STATUS: unnamed_25 = 268435469;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct unnamed_36 {
-    pub tqe_next: *mut message_entry,
-    pub tqe_prev: *mut *mut message_entry,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session_group {
-    pub name: *const libc::c_char,
-    pub sessions: unnamed_32,
-    pub entry: unnamed_10,
-}
-pub const TTY_VT420: unnamed_16 = 5;
-pub const PROMPT_COMMAND: unnamed_7 = 1;
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub struct session {
-    pub id: u_int,
-    pub name: *mut libc::c_char,
-    pub cwd: *const libc::c_char,
-    pub creation_time: timeval,
-    pub last_attached_time: timeval,
-    pub activity_time: timeval,
-    pub last_activity_time: timeval,
-    pub lock_timer: event,
-    pub sx: u_int,
-    pub sy: u_int,
-    pub curw: *mut winlink,
-    pub lastw: winlink_stack,
-    pub windows: winlinks,
-    pub statusat: libc::c_int,
-    pub hooks: *mut hooks,
-    pub options: *mut options,
+pub struct cmd {
+    pub entry: *const cmd_entry,
+    pub args: *mut args,
+    pub file: *mut libc::c_char,
+    pub line: u_int,
     pub flags: libc::c_int,
-    pub attached: u_int,
-    pub tio: *mut termios,
-    pub environ: *mut environ,
-    pub references: libc::c_int,
-    pub gentry: unnamed_22,
-    pub entry: unnamed_11,
+    pub qentry: unnamed,
 }
-pub const CMD_RETURN_WAIT: cmd_retval = 1;
-pub const KEYC_HOME: unnamed_25 = 268435540;
-pub type uint16_t = libc::c_ushort;
-pub const KEYC_MOUSEDRAG3_STATUS: unnamed_25 = 268435490;
-pub const KEYC_MOUSEDOWN1_PANE: unnamed_25 = 268435465;
+pub type __off_t = libc::c_long;
+pub type __pid_t = libc::c_int;
+pub const OPTIONS_TABLE_COLOUR: options_table_type = 3;
+pub const KEYC_LEFT: unnamed_19 = 268435547;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
-pub struct unnamed_37 {
-    pub le_next: *mut job,
-    pub le_prev: *mut *mut job,
-}
-#[derive ( Copy , Clone )]
-#[repr ( C )]
-pub union unnamed_38 {
-    ev_next_with_common_timeout: unnamed_26,
+pub union unnamed_35 {
+    ev_next_with_common_timeout: unnamed_39,
     min_heap_idx: libc::c_int,
 }
+pub const KEYC_MOUSEDRAG2_BORDER: unnamed_19 = 268435488;
+pub const KEYC_F1: unnamed_19 = 268435526;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct windows {
+    pub rbh_root: *mut window,
+}
+pub const KEYC_DOUBLECLICK2_STATUS: unnamed_19 = 268435511;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct window_pane_tree {
+    pub rbh_root: *mut window_pane,
+}
+pub const KEYC_DOWN: unnamed_19 = 268435546;
+pub const KEYC_PPAGE: unnamed_19 = 268435543;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct grid {
@@ -1452,12 +1354,107 @@ pub struct grid {
     pub hlimit: u_int,
     pub linedata: *mut grid_line,
 }
+pub const KEYC_WHEELUP_BORDER: unnamed_19 = 268435503;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_36 {
+    pub rbe_left: *mut key_binding,
+    pub rbe_right: *mut key_binding,
+    pub rbe_parent: *mut key_binding,
+    pub rbe_color: libc::c_int,
+}
+pub const OPTIONS_TABLE_CHOICE: options_table_type = 6;
+pub type __u_char = libc::c_uchar;
+pub const TTY_UNKNOWN: unnamed_20 = 6;
+pub type __off64_t = libc::c_long;
+pub const KEYC_DOUBLECLICK2_BORDER: unnamed_19 = 268435512;
+pub type uint8_t = libc::c_uchar;
+pub const KEYC_KP_ONE: unnamed_19 = 268435559;
+pub const TTY_VT320: unnamed_20 = 4;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct session_groups {
+    pub rbh_root: *mut session_group,
+}
+pub const PROMPT_COMMAND: unnamed_31 = 1;
+pub const TTY_VT101: unnamed_20 = 1;
+pub const KEYC_KP_ZERO: unnamed_19 = 268435563;
+pub const CMD_FIND_SESSION: cmd_find_type = 2;
+pub const JOB_RUNNING: unnamed_16 = 0;
+pub const KEYC_BTAB: unnamed_19 = 268435544;
+pub const KEYC_MOUSEDRAG3_BORDER: unnamed_19 = 268435491;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct screen_write_ctx {
+    pub wp: *mut window_pane,
+    pub s: *mut screen,
+    pub item: *mut screen_write_collect_item,
+    pub list: *mut screen_write_collect_line,
+    pub scrolled: u_int,
+    pub bg: u_int,
+    pub cells: u_int,
+    pub written: u_int,
+    pub skipped: u_int,
+}
+pub const OPTIONS_TABLE_NUMBER: options_table_type = 1;
+pub const KEYC_MOUSEMOVE_BORDER: unnamed_19 = 268435464;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_37 {
+    pub attr: u_char,
+    pub fg: u_char,
+    pub bg: u_char,
+    pub data: u_char,
+}
+pub const KEYC_UP: unnamed_19 = 268435545;
+pub type key_code = libc::c_ulonglong;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct unnamed_38 {
+    pub tqe_next: *mut event,
+    pub tqe_prev: *mut *mut event,
+}
+pub const KEYC_MOUSEDOWN3_PANE: unnamed_19 = 268435471;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct cmd_find_state {
+    pub flags: libc::c_int,
+    pub current: *mut cmd_find_state,
+    pub s: *mut session,
+    pub wl: *mut winlink,
+    pub w: *mut window,
+    pub wp: *mut window_pane,
+    pub idx: libc::c_int,
+}
+pub const OPTIONS_TABLE_FLAG: options_table_type = 5;
+pub const KEYC_END: unnamed_19 = 268435541;
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct message_entry {
+    pub msg: *mut libc::c_char,
+    pub msg_num: u_int,
+    pub msg_time: time_t,
+    pub entry: unnamed_26,
+}
+pub type FILE = _IO_FILE;
+pub const KEYC_KP_STAR: unnamed_19 = 268435550;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct unnamed_39 {
-    pub tqe_next: *mut window,
-    pub tqe_prev: *mut *mut window,
+    pub tqe_next: *mut event,
+    pub tqe_prev: *mut *mut event,
 }
+#[derive ( Copy , Clone )]
+#[repr ( C )]
+pub struct cmdq_shared {
+    pub references: libc::c_int,
+    pub flags: libc::c_int,
+    pub formats: *mut format_tree,
+    pub mouse: mouse_event,
+    pub current: cmd_find_state,
+}
+pub const KEYC_MOUSEDOWN3_BORDER: unnamed_19 = 268435473;
+pub const KEYC_TRIPLECLICK1_STATUS: unnamed_19 = 268435517;
 #[no_mangle]
 pub unsafe extern "C" fn status_timer_start(mut c: *mut client) -> () {
     let mut s: *mut session = (*c).session;
@@ -1837,7 +1834,7 @@ pub unsafe extern "C" fn status_redraw(mut c: *mut client) -> libc::c_int {
                 }
                 screen_write_stop(&mut ctx as *mut screen_write_ctx);
                 if wlwidth <= wlavailable {
-                    current_block = 12852488818099017248;
+                    current_block = 4372395669998863707;
                 } else {
                     wlsize = (*(*s).curw).status_width as u_int;
                     if wloffset.wrapping_add(wlsize) < wlavailable {
@@ -1868,7 +1865,7 @@ pub unsafe extern "C" fn status_redraw(mut c: *mut client) -> libc::c_int {
                     if wlwidth == 0i32 as libc::c_uint ||
                            wlavailable == 0i32 as libc::c_uint {
                         screen_free(&mut window_list as *mut screen);
-                        current_block = 8506478340253986099;
+                        current_block = 16597310588044399956;
                     } else {
                         offset = 0i32 as u_int;
                         wl =
@@ -1891,11 +1888,11 @@ pub unsafe extern "C" fn status_redraw(mut c: *mut client) -> libc::c_int {
                             }
                             wl = winlinks_RB_NEXT(wl)
                         }
-                        current_block = 12852488818099017248;
+                        current_block = 4372395669998863707;
                     }
                 }
                 match current_block {
-                    8506478340253986099 => { }
+                    16597310588044399956 => { }
                     _ => {
                         screen_write_start(&mut ctx as *mut screen_write_ctx,
                                            0 as *mut window_pane,
@@ -1981,39 +1978,39 @@ pub unsafe extern "C" fn status_redraw(mut c: *mut client) -> libc::c_int {
                                                          *const libc::c_char)
                                 {
                                 1 => {
-                                    current_block = 9113849443971521397;
+                                    current_block = 4234997716040105325;
                                     match current_block {
-                                        18143773739680929817 => {
-                                            wloffset =
-                                                (wloffset as
-                                                     libc::c_uint).wrapping_add(wlavailable.wrapping_sub(wlwidth))
-                                                    as u_int as u_int
-                                        }
-                                        _ => {
+                                        4234997716040105325 => {
                                             wloffset =
                                                 (wloffset as
                                                      libc::c_uint).wrapping_add(wlavailable.wrapping_sub(wlwidth).wrapping_div(2i32
                                                                                                                                    as
                                                                                                                                    libc::c_uint))
+                                                    as u_int as u_int
+                                        }
+                                        _ => {
+                                            wloffset =
+                                                (wloffset as
+                                                     libc::c_uint).wrapping_add(wlavailable.wrapping_sub(wlwidth))
                                                     as u_int as u_int
                                         }
                                     }
                                 }
                                 2 => {
-                                    current_block = 18143773739680929817;
+                                    current_block = 13308642909114346206;
                                     match current_block {
-                                        18143773739680929817 => {
-                                            wloffset =
-                                                (wloffset as
-                                                     libc::c_uint).wrapping_add(wlavailable.wrapping_sub(wlwidth))
-                                                    as u_int as u_int
-                                        }
-                                        _ => {
+                                        4234997716040105325 => {
                                             wloffset =
                                                 (wloffset as
                                                      libc::c_uint).wrapping_add(wlavailable.wrapping_sub(wlwidth).wrapping_div(2i32
                                                                                                                                    as
                                                                                                                                    libc::c_uint))
+                                                    as u_int as u_int
+                                        }
+                                        _ => {
+                                            wloffset =
+                                                (wloffset as
+                                                     libc::c_uint).wrapping_add(wlavailable.wrapping_sub(wlwidth))
                                                     as u_int as u_int
                                         }
                                     }
@@ -2583,7 +2580,7 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
     size = utf8_strlen((*c).prompt_buffer);
     if 0 != (*c).prompt_flags & 2i32 {
         if key >= 48 as libc::c_ulonglong && key <= 57 as libc::c_ulonglong {
-            current_block = 7578323824570608401;
+            current_block = 5112146586258655700;
         } else {
             s = utf8_tocstr((*c).prompt_buffer);
             (*c).prompt_inputcb.expect("non-null function pointer")(c,
@@ -2601,19 +2598,126 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
         if keys == 1i32 {
             match status_prompt_translate_key(c, key,
                                               &mut key as *mut key_code) {
-                1 => { current_block = 12787296880002471115; }
-                2 => { current_block = 7578323824570608401; }
+                1 => { current_block = 5570009033110976234; }
+                2 => { current_block = 5112146586258655700; }
                 _ => { return 0i32 }
             }
-        } else { current_block = 12787296880002471115; }
+        } else { current_block = 5570009033110976234; }
         match current_block {
-            7578323824570608401 => { }
+            5112146586258655700 => { }
             _ => {
                 match key {
                     268435547 | 2 => {
-                        current_block = 2408508574073010388;
+                        current_block = 12348617563570931093;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -2668,50 +2772,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -2756,42 +2839,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -2949,13 +3010,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -3043,10 +3165,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -3072,30 +3202,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -3110,145 +3236,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     268435548 | 6 => {
-                        current_block = 12990826847085376303;
+                        current_block = 18319741960141085380;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -3303,50 +3407,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -3391,42 +3474,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -3584,13 +3645,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -3678,10 +3800,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -3707,30 +3837,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -3745,145 +3871,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     268435540 | 1 => {
-                        current_block = 11533739284268570803;
+                        current_block = 7135116673376365024;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -3938,50 +4042,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -4026,42 +4109,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -4219,13 +4280,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -4313,10 +4435,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -4342,30 +4472,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -4380,145 +4506,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     268435541 | 5 => {
-                        current_block = 8079264503378379386;
+                        current_block = 8680220904978397701;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -4573,50 +4677,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -4661,42 +4744,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -4854,13 +4915,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -4948,10 +5070,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -4977,30 +5107,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -5015,145 +5141,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     9 => {
-                        current_block = 17013359281981807571;
+                        current_block = 5921742005879753419;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -5208,50 +5312,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -5296,42 +5379,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -5489,13 +5550,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -5583,10 +5705,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -5612,30 +5742,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -5650,145 +5776,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     268435525 | 8 => {
-                        current_block = 10772690620998241756;
+                        current_block = 2130312425211776926;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -5843,50 +5947,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -5931,42 +6014,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -6124,13 +6185,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -6218,10 +6340,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -6247,30 +6377,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -6285,145 +6411,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     268435539 | 4 => {
-                        current_block = 5970358073848348575;
+                        current_block = 16557782726696272311;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -6478,50 +6582,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -6566,42 +6649,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -6759,13 +6820,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -6853,10 +6975,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -6882,30 +7012,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -6920,145 +7046,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     21 => {
-                        current_block = 16194126489807337798;
+                        current_block = 8699753765880836361;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -7113,50 +7217,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -7201,42 +7284,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -7394,13 +7455,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -7488,10 +7610,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -7517,30 +7647,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -7555,145 +7681,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     11 => {
-                        current_block = 1754583399387835727;
+                        current_block = 10985264864506037335;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -7748,50 +7852,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -7836,42 +7919,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -8029,13 +8090,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -8123,10 +8245,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -8152,30 +8282,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -8190,145 +8316,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     23 => {
-                        current_block = 3947153213232826515;
+                        current_block = 15980603101397182871;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -8383,50 +8487,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -8471,42 +8554,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -8664,13 +8725,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -8758,10 +8880,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -8787,30 +8917,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -8825,145 +8951,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     35184372088934 => {
-                        current_block = 5402613236608857871;
+                        current_block = 10878104639531354403;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -9018,50 +9122,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -9106,42 +9189,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -9299,13 +9360,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -9393,10 +9515,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -9422,30 +9552,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -9460,145 +9586,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     35184372088930 => {
-                        current_block = 11778947346494870700;
+                        current_block = 6880274993846803716;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -9653,50 +9757,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -9741,42 +9824,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -9934,13 +9995,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -10028,10 +10150,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -10057,30 +10187,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -10095,145 +10221,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     268435545 | 16 => {
-                        current_block = 1508494158227934944;
+                        current_block = 3184588735313728597;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -10288,50 +10392,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -10376,42 +10459,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -10569,13 +10630,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -10663,10 +10785,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -10692,30 +10822,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -10730,145 +10856,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     268435546 | 14 => {
-                        current_block = 13173292619665195676;
+                        current_block = 14816179768414486125;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -10923,50 +11027,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -11011,42 +11094,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -11204,13 +11265,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -11298,10 +11420,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -11327,30 +11457,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -11365,145 +11491,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     25 => {
-                        current_block = 15183034636899857221;
+                        current_block = 13969473670894645412;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -11558,50 +11662,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -11646,42 +11729,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -11839,13 +11900,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -11933,10 +12055,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -11962,30 +12092,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -12000,145 +12126,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     20 => {
-                        current_block = 3513661652909667213;
+                        current_block = 3231787349151534483;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -12193,50 +12297,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -12281,42 +12364,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -12474,13 +12535,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -12568,10 +12690,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -12597,30 +12727,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -12635,145 +12761,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     13 | 10 => {
-                        current_block = 10035012600013456863;
+                        current_block = 3866520081770058528;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -12828,50 +12932,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -12916,42 +12999,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -13109,13 +13170,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -13203,10 +13325,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -13232,30 +13362,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -13270,145 +13396,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     27 | 3 | 7 => {
-                        current_block = 15585325081172392795;
+                        current_block = 485759478260003476;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -13463,50 +13567,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -13551,42 +13634,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -13744,13 +13805,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -13838,10 +13960,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -13867,30 +13997,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -13905,145 +14031,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     18 => {
-                        current_block = 743185670549602528;
+                        current_block = 16563619814557583723;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -14098,50 +14202,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -14186,42 +14269,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -14379,13 +14440,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -14473,10 +14595,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -14502,30 +14632,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -14540,145 +14666,123 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
                     19 => {
-                        current_block = 13988319713433383510;
+                        current_block = 4407371520091252421;
                         match current_block {
-                            3947153213232826515 => {
+                            3184588735313728597 => {
+                                histstr =
+                                    status_prompt_up_history(&mut (*c).prompt_hindex
+                                                                 as
+                                                                 *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            16557782726696272311 => {
+                                if (*c).prompt_index != size {
+                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize)
+                                                as *mut libc::c_void,
+                                            (*c).prompt_buffer.offset((*c).prompt_index
+                                                                          as
+                                                                          isize).offset(1isize)
+                                                as *const libc::c_void,
+                                            size.wrapping_add(1i32 as
+                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
+                                                                                                                                  as
+                                                                                                                                  libc::c_ulong));
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            12348617563570931093 => {
+                                if (*c).prompt_index > 0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            4407371520091252421 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 43 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            18319741960141085380 => {
+                                if (*c).prompt_index < size {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            6880274993846803716 => {
+                                ws =
+                                    options_get_string(oo,
+                                                       b"word-separators\x00"
+                                                           as *const u8 as
+                                                           *const libc::c_char);
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if 0 ==
+                                           status_prompt_in_list(ws,
+                                                                 &mut *(*c).prompt_buffer.offset(idx
+                                                                                                     as
+                                                                                                     isize)
+                                                                     as
+                                                                     *mut utf8_data)
+                                       {
+                                        break ;
+                                    }
+                                }
+                                while (*c).prompt_index !=
+                                          0i32 as libc::c_ulong {
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_sub(1);
+                                    idx = (*c).prompt_index;
+                                    if !(0 !=
+                                             status_prompt_in_list(ws,
+                                                                   &mut *(*c).prompt_buffer.offset(idx
+                                                                                                       as
+                                                                                                       isize)
+                                                                       as
+                                                                       *mut utf8_data))
+                                       {
+                                        continue ;
+                                    }
+                                    (*c).prompt_index =
+                                        (*c).prompt_index.wrapping_add(1);
+                                    break ;
+                                }
+                                current_block = 9807582551589945251;
+                            }
+                            15980603101397182871 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -14733,50 +14837,29 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                                                             as
                                                                                             libc::c_ulong));
                                 (*c).prompt_index = idx;
-                                current_block = 17454085545635601721;
+                                current_block = 9807582551589945251;
                             }
-                            13988319713433383510 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 43 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            7135116673376365024 => {
+                                if (*c).prompt_index != 0i32 as libc::c_ulong
+                                   {
+                                    (*c).prompt_index = 0i32 as size_t;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            743185670549602528 => {
-                                if 0 != (*c).prompt_flags & 4i32 {
-                                    prefix = 45 as libc::c_char;
-                                    current_block = 17454085545635601721;
+                            10985264864506037335 => {
+                                if (*c).prompt_index < size {
+                                    (*(*c).prompt_buffer.offset((*c).prompt_index
+                                                                    as
+                                                                    isize)).size
+                                        = 0i32 as u_char;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            5970358073848348575 => {
-                                if (*c).prompt_index != size {
-                                    memmove((*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize)
-                                                as *mut libc::c_void,
-                                            (*c).prompt_buffer.offset((*c).prompt_index
-                                                                          as
-                                                                          isize).offset(1isize)
-                                                as *const libc::c_void,
-                                            size.wrapping_add(1i32 as
-                                                                  libc::c_ulong).wrapping_sub((*c).prompt_index).wrapping_mul(::std::mem::size_of::<utf8_data>()
-                                                                                                                                  as
-                                                                                                                                  libc::c_ulong));
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            16194126489807337798 => {
-                                (*(*c).prompt_buffer.offset(0isize)).size =
-                                    0i32 as u_char;
-                                (*c).prompt_index = 0i32 as size_t;
-                                current_block = 17454085545635601721;
-                            }
-                            5402613236608857871 => {
+                            10878104639531354403 => {
                                 ws =
                                     options_get_string(oo,
                                                        b"word-separators\x00"
@@ -14821,42 +14904,20 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                            0i32 as libc::c_ulong {
                                     (*c).prompt_index =
                                         (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            1754583399387835727 => {
-                                if (*c).prompt_index < size {
-                                    (*(*c).prompt_buffer.offset((*c).prompt_index
-                                                                    as
-                                                                    isize)).size
-                                        = 0i32 as u_char;
-                                    current_block = 17454085545635601721;
+                            8680220904978397701 => {
+                                if (*c).prompt_index != size {
+                                    (*c).prompt_index = size;
+                                    current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            13173292619665195676 => {
-                                histstr =
-                                    status_prompt_down_history(&mut (*c).prompt_hindex
-                                                                   as
-                                                                   *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            17013359281981807571 => {
+                            5921742005879753419 => {
                                 if (*(*c).prompt_buffer.offset(0isize)).size
                                        as libc::c_int == 0i32 {
                                     current_block = 11006700562992250127;
@@ -15014,13 +15075,74 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                          libc::c_ulong).wrapping_add(strlen(s));
                                                 free(s as *mut libc::c_void);
                                                 current_block =
-                                                    17454085545635601721;
+                                                    9807582551589945251;
                                             }
                                         }
                                     }
                                 }
                             }
-                            15183034636899857221 => {
+                            8699753765880836361 => {
+                                (*(*c).prompt_buffer.offset(0isize)).size =
+                                    0i32 as u_char;
+                                (*c).prompt_index = 0i32 as size_t;
+                                current_block = 9807582551589945251;
+                            }
+                            14816179768414486125 => {
+                                histstr =
+                                    status_prompt_down_history(&mut (*c).prompt_hindex
+                                                                   as
+                                                                   *mut u_int);
+                                if histstr ==
+                                       0 as *mut libc::c_void as
+                                           *const libc::c_char {
+                                    current_block = 11006700562992250127;
+                                } else {
+                                    free((*c).prompt_buffer as
+                                             *mut libc::c_void);
+                                    (*c).prompt_buffer =
+                                        utf8_fromcstr(histstr);
+                                    (*c).prompt_index =
+                                        utf8_strlen((*c).prompt_buffer);
+                                    current_block = 9807582551589945251;
+                                }
+                            }
+                            3231787349151534483 => {
+                                idx = (*c).prompt_index;
+                                if idx < size { idx = idx.wrapping_add(1) }
+                                if idx >= 2i32 as libc::c_ulong {
+                                    utf8_copy(&mut tmp as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data);
+                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
+                                                                                                   as
+                                                                                                   libc::c_ulong)
+                                                                                  as
+                                                                                  isize)
+                                                  as *mut utf8_data,
+                                              &mut tmp as *mut utf8_data);
+                                    (*c).prompt_index = idx;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            13969473670894645412 => {
                                 pb =
                                     paste_get_top(0 as
                                                       *mut *const libc::c_char);
@@ -15108,10 +15230,18 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                                  libc::c_ulong).wrapping_add(n)
                                                 as size_t as size_t
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 }
                             }
-                            10772690620998241756 => {
+                            16563619814557583723 => {
+                                if 0 != (*c).prompt_flags & 4i32 {
+                                    prefix = 45 as libc::c_char;
+                                    current_block = 9807582551589945251;
+                                } else {
+                                    current_block = 11006700562992250127;
+                                }
+                            }
+                            2130312425211776926 => {
                                 if (*c).prompt_index != 0i32 as libc::c_ulong
                                    {
                                     if (*c).prompt_index == size {
@@ -15137,30 +15267,26 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                         (*c).prompt_index =
                                             (*c).prompt_index.wrapping_sub(1)
                                     }
-                                    current_block = 17454085545635601721;
+                                    current_block = 9807582551589945251;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            12990826847085376303 => {
-                                if (*c).prompt_index < size {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
+                            485759478260003476 => {
+                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
+                                                                                           (*c).prompt_data,
+                                                                                           0
+                                                                                               as
+                                                                                               *const libc::c_char,
+                                                                                           1i32)
+                                       == 0i32 {
+                                    status_prompt_clear(c);
                                     current_block = 11006700562992250127;
                                 } else {
                                     current_block = 11006700562992250127;
                                 }
                             }
-                            2408508574073010388 => {
-                                if (*c).prompt_index > 0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            10035012600013456863 => {
+                            _ => {
                                 s = utf8_tocstr((*c).prompt_buffer);
                                 if *s as libc::c_int != 0 {
                                     status_prompt_add_history(s);
@@ -15175,148 +15301,19 @@ pub unsafe extern "C" fn status_prompt_key(mut c: *mut client,
                                 free(s as *mut libc::c_void);
                                 current_block = 11006700562992250127;
                             }
-                            1508494158227934944 => {
-                                histstr =
-                                    status_prompt_up_history(&mut (*c).prompt_hindex
-                                                                 as
-                                                                 *mut u_int);
-                                if histstr ==
-                                       0 as *mut libc::c_void as
-                                           *const libc::c_char {
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    free((*c).prompt_buffer as
-                                             *mut libc::c_void);
-                                    (*c).prompt_buffer =
-                                        utf8_fromcstr(histstr);
-                                    (*c).prompt_index =
-                                        utf8_strlen((*c).prompt_buffer);
-                                    current_block = 17454085545635601721;
-                                }
-                            }
-                            11533739284268570803 => {
-                                if (*c).prompt_index != 0i32 as libc::c_ulong
-                                   {
-                                    (*c).prompt_index = 0i32 as size_t;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            8079264503378379386 => {
-                                if (*c).prompt_index != size {
-                                    (*c).prompt_index = size;
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            3513661652909667213 => {
-                                idx = (*c).prompt_index;
-                                if idx < size { idx = idx.wrapping_add(1) }
-                                if idx >= 2i32 as libc::c_ulong {
-                                    utf8_copy(&mut tmp as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(2i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data);
-                                    utf8_copy(&mut *(*c).prompt_buffer.offset(idx.wrapping_sub(1i32
-                                                                                                   as
-                                                                                                   libc::c_ulong)
-                                                                                  as
-                                                                                  isize)
-                                                  as *mut utf8_data,
-                                              &mut tmp as *mut utf8_data);
-                                    (*c).prompt_index = idx;
-                                    current_block = 17454085545635601721;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
-                            11778947346494870700 => {
-                                ws =
-                                    options_get_string(oo,
-                                                       b"word-separators\x00"
-                                                           as *const u8 as
-                                                           *const libc::c_char);
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if 0 ==
-                                           status_prompt_in_list(ws,
-                                                                 &mut *(*c).prompt_buffer.offset(idx
-                                                                                                     as
-                                                                                                     isize)
-                                                                     as
-                                                                     *mut utf8_data)
-                                       {
-                                        break ;
-                                    }
-                                }
-                                while (*c).prompt_index !=
-                                          0i32 as libc::c_ulong {
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_sub(1);
-                                    idx = (*c).prompt_index;
-                                    if !(0 !=
-                                             status_prompt_in_list(ws,
-                                                                   &mut *(*c).prompt_buffer.offset(idx
-                                                                                                       as
-                                                                                                       isize)
-                                                                       as
-                                                                       *mut utf8_data))
-                                       {
-                                        continue ;
-                                    }
-                                    (*c).prompt_index =
-                                        (*c).prompt_index.wrapping_add(1);
-                                    break ;
-                                }
-                                current_block = 17454085545635601721;
-                            }
-                            _ => {
-                                if (*c).prompt_inputcb.expect("non-null function pointer")(c,
-                                                                                           (*c).prompt_data,
-                                                                                           0
-                                                                                               as
-                                                                                               *const libc::c_char,
-                                                                                           1i32)
-                                       == 0i32 {
-                                    status_prompt_clear(c);
-                                    current_block = 11006700562992250127;
-                                } else {
-                                    current_block = 11006700562992250127;
-                                }
-                            }
                         }
                         match current_block {
-                            17454085545635601721 => { }
+                            9807582551589945251 => { }
                             _ => { (*c).flags |= 16i32; return 0i32 }
                         }
                     }
-                    _ => { current_block = 7578323824570608401; }
+                    _ => { current_block = 5112146586258655700; }
                 }
             }
         }
     }
     match current_block {
-        7578323824570608401 => {
+        5112146586258655700 => {
             if key <= 31i32 as libc::c_ulonglong || key >= 268435456u64 {
                 return 0i32
             } else if utf8_split(key as wchar_t, &mut tmp as *mut utf8_data)
@@ -15991,9 +15988,10 @@ pub unsafe extern "C" fn status_prompt_save_history() -> () {
         }
     };
 }
-unsafe extern "C" fn status_message_callback(mut fd: libc::c_int,
-                                             mut event: libc::c_short,
-                                             mut data: *mut libc::c_void)
+#[no_mangle]
+pub unsafe extern "C" fn status_message_callback(mut fd: libc::c_int,
+                                                 mut event: libc::c_short,
+                                                 mut data: *mut libc::c_void)
  -> () {
     let mut c: *mut client = data as *mut client;
     status_message_clear(c);

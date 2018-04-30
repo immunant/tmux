@@ -32,6 +32,8 @@ extern "C" {
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
 }
+pub type _IO_lock_t = ();
+pub type __off64_t = libc::c_long;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_FILE {
@@ -65,6 +67,8 @@ pub struct _IO_FILE {
     pub _mode: libc::c_int,
     pub _unused2: [libc::c_char; 20],
 }
+pub type size_t = libc::c_ulong;
+pub type __off_t = libc::c_long;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_marker {
@@ -72,10 +76,6 @@ pub struct _IO_marker {
     pub _sbuf: *mut _IO_FILE,
     pub _pos: libc::c_int,
 }
-pub type __off_t = libc::c_long;
-pub type _IO_lock_t = ();
-pub type size_t = libc::c_ulong;
-pub type __off64_t = libc::c_long;
 #[no_mangle]
 pub unsafe extern "C" fn reallocarray(mut optr: *mut libc::c_void,
                                       mut nmemb: size_t, mut size: size_t)

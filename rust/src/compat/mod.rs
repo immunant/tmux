@@ -1,18 +1,15 @@
-#[allow(private_no_mangle_fns)]
 pub mod closefrom;
-#[allow(private_no_mangle_fns)]
-pub mod fdforkpty;
-#[allow(private_no_mangle_fns)]
+pub mod explicit_bzero;
+pub mod fgetln;
+pub mod fparseln;
 pub mod freezero;
-#[allow(private_no_mangle_fns)]
+pub mod getdtablecount;
 pub mod getprogname;
-#[allow(private_no_mangle_fns)]
-pub mod imsg;
-#[allow(private_no_mangle_fns)]
 pub mod imsg_buffer;
-#[allow(private_no_mangle_fns)]
+pub mod imsg;
 pub mod reallocarray;
-#[allow(private_no_mangle_fns)]
 pub mod recallocarray;
-#[allow(private_no_mangle_fns)]
+pub mod strlcat;
 pub mod strlcpy;
+pub mod strtonum;
+pub mod vis;

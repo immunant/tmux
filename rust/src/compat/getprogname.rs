@@ -2,6 +2,10 @@ extern crate libc;
 extern "C" {
     pub type _IO_FILE_plus;
     #[no_mangle]
+    static mut program_invocation_name: *mut libc::c_char;
+    #[no_mangle]
+    static mut program_invocation_short_name: *mut libc::c_char;
+    #[no_mangle]
     static mut _IO_2_1_stdin_: _IO_FILE_plus;
     #[no_mangle]
     static mut _IO_2_1_stdout_: _IO_FILE_plus;
@@ -18,6 +22,10 @@ extern "C" {
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
+    static mut _sys_nerr: libc::c_int;
+    #[no_mangle]
+    static _sys_errlist: [*const libc::c_char; 0];
+    #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]
     static mut BSDoptind: libc::c_int;
@@ -28,7 +36,6 @@ extern "C" {
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
 }
-pub type size_t = libc::c_ulong;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_marker {
@@ -36,7 +43,7 @@ pub struct _IO_marker {
     pub _sbuf: *mut _IO_FILE,
     pub _pos: libc::c_int,
 }
-pub type _IO_lock_t = ();
+pub type size_t = libc::c_ulong;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_FILE {
@@ -72,8 +79,9 @@ pub struct _IO_FILE {
 }
 pub type __off64_t = libc::c_long;
 pub type __off_t = libc::c_long;
+pub type _IO_lock_t = ();
 #[no_mangle]
 pub unsafe extern "C" fn getprogname() -> *const libc::c_char {
-    return b"tmux-rs\x00" as *const u8 as *const libc::c_char;
+    return program_invocation_short_name;
 }
 

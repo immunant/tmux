@@ -4,6 +4,10 @@ extern "C" {
     #[no_mangle]
     fn __errno_location() -> *mut libc::c_int;
     #[no_mangle]
+    static mut program_invocation_name: *mut libc::c_char;
+    #[no_mangle]
+    static mut program_invocation_short_name: *mut libc::c_char;
+    #[no_mangle]
     fn malloc(_: libc::c_ulong) -> *mut libc::c_void;
     #[no_mangle]
     fn calloc(_: libc::c_ulong, _: libc::c_ulong) -> *mut libc::c_void;
@@ -17,6 +21,8 @@ extern "C" {
      -> *mut libc::c_void;
     #[no_mangle]
     static mut __environ: *mut *mut libc::c_char;
+    #[no_mangle]
+    static mut environ: *mut *mut libc::c_char;
     #[no_mangle]
     static mut optarg: *mut libc::c_char;
     #[no_mangle]
@@ -44,7 +50,9 @@ extern "C" {
     #[no_mangle]
     static sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
-    fn explicit_bzero(_: *mut libc::c_void, _: size_t) -> ();
+    static mut _sys_nerr: libc::c_int;
+    #[no_mangle]
+    static _sys_errlist: [*const libc::c_char; 0];
     #[no_mangle]
     static mut BSDopterr: libc::c_int;
     #[no_mangle]
@@ -55,8 +63,12 @@ extern "C" {
     static mut BSDoptreset: libc::c_int;
     #[no_mangle]
     static mut BSDoptarg: *mut libc::c_char;
+    #[no_mangle]
+    fn explicit_bzero(_: *mut libc::c_void, _: size_t) -> ();
 }
+pub type size_t = libc::c_ulong;
 pub type _IO_lock_t = ();
+pub type __off_t = libc::c_long;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_FILE {
@@ -90,7 +102,6 @@ pub struct _IO_FILE {
     pub _mode: libc::c_int,
     pub _unused2: [libc::c_char; 20],
 }
-pub type size_t = libc::c_ulong;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct _IO_marker {
@@ -98,7 +109,6 @@ pub struct _IO_marker {
     pub _sbuf: *mut _IO_FILE,
     pub _pos: libc::c_int,
 }
-pub type __off_t = libc::c_long;
 pub type __off64_t = libc::c_long;
 #[no_mangle]
 pub unsafe extern "C" fn recallocarray(mut ptr: *mut libc::c_void,
@@ -168,4 +178,3 @@ pub unsafe extern "C" fn recallocarray(mut ptr: *mut libc::c_void,
         }
     };
 }
-

@@ -1,9 +1,8 @@
 extern crate libc;
 
-use common::termios;
-use window::winsize;
-
 extern "C" {
+    pub type termios;
+    pub type winsize;
     pub type _IO_FILE_plus;
     #[no_mangle]
     static mut _IO_2_1_stdin_: _IO_FILE_plus;

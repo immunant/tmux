@@ -4,7 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdarg.h>
 
+#include "compat.h"
 #include "tmux.h"
 #include "variadic.h"
 
@@ -29,6 +31,7 @@ extern struct environ_entry *environ_RB_NEXT(struct environ_entry*);
 extern struct environ_entry *environ_RB_MINMAX(struct environ*, int);
 extern struct format_entry *format_entry_tree_RB_INSERT(struct format_entry_tree*, struct format_entry*);
 extern void status_message_callback(int, short, void *);
+extern const char * getprogname(void);
 
 extern char **cfg_causes;
 extern u_int cfg_ncauses;
@@ -745,3 +748,33 @@ xsnprintf(char *str, size_t len, const char *fmt, ...)
 
 	return i;
 }
+
+#if defined(HAVE_PRCTL) && defined(HAVE_PR_SET_NAME)
+
+#include <sys/prctl.h>
+
+void
+setproctitle(const char *fmt, ...)
+{
+	char	title[16], name[16], *cp;
+	va_list	ap;
+	int	used;
+
+	va_start(ap, fmt);
+	vsnprintf(title, sizeof title, fmt, ap);
+	va_end(ap);
+
+	used = snprintf(name, sizeof name, "%s: %s", getprogname(), title);
+	if (used >= (int)sizeof name) {
+		cp = strrchr(name, ' ');
+		if (cp != NULL)
+			*cp = '\0';
+	}
+	prctl(PR_SET_NAME, name);
+}
+#else
+void
+setproctitle(__unused const char *fmt, ...)
+{
+}
+#endif

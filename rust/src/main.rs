@@ -2011,7 +2011,7 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char)
     opt_table[57].choices = options_table_status_position_list.as_mut_ptr();
     assert_eq!(CStr::from_ptr(opt_table[66].name).to_bytes(), b"visual-activity");
     opt_table[66].choices = options_table_visual_bell_list.as_mut_ptr();
-    assert_eq!(CStr::from_ptr(opt_table[67].name).to_bytes(), b"visual-activity");
+    assert_eq!(CStr::from_ptr(opt_table[67].name).to_bytes(), b"visual-bell");
     opt_table[67].choices = options_table_visual_bell_list.as_mut_ptr();
     assert_eq!(CStr::from_ptr(opt_table[68].name).to_bytes(), b"visual-silence");
     opt_table[68].choices = options_table_visual_bell_list.as_mut_ptr();

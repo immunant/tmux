@@ -1,6 +1,7 @@
+pub mod base64;
 pub mod closefrom;
 pub mod explicit_bzero;
-pub mod fdforkpty; // REVIEW: Was not refreshed due to panic
+pub mod fdforkpty;
 pub mod fgetln;
 pub mod fparseln;
 pub mod freezero;

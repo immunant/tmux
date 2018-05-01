@@ -37,5 +37,6 @@ void status_message_set(struct client *c, const char *fmt, ...);
 void window_copy_add(struct window_pane *wp, const char *fmt, ...);
 int xasprintf(char **ret, const char *fmt, ...);
 int xsnprintf(char *str, size_t len, const char *fmt, ...);
+void setproctitle(__unused const char *fmt, ...);
 
 #endif // __TMUX_VARIADIC_H

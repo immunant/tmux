@@ -22,6 +22,8 @@ fn main() {
         .out_dir(&lib_dir)
         .compile("variadic");
 
+    println!("cargo:rustc-link-lib=static=ncursesw");
+    println!("cargo:rustc-link-lib=static=resolv");
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
     println!("cargo:rustc-link-lib=static=event");
 }

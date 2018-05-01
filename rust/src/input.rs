@@ -1,16 +1,3 @@
-#![feature ( libc )]
-#![feature ( i128_type )]
-#![feature ( const_ptr_null )]
-#![feature ( offset_to )]
-#![feature ( const_ptr_null_mut )]
-#![feature ( extern_types )]
-#![feature ( asm )]
-#![allow ( non_upper_case_globals )]
-#![allow ( non_camel_case_types )]
-#![allow ( non_snake_case )]
-#![allow ( dead_code )]
-#![allow ( mutable_transmutes )]
-#![allow ( unused_mut )]
 extern crate libc;
 extern "C" {
     pub type screen_titles;
@@ -1614,14 +1601,14 @@ pub unsafe extern "C" fn input_reset(mut wp: *mut window_pane,
     (*ictx).state = &input_state_ground as *const input_state;
     (*ictx).flags = 0i32;
 }
-static mut input_state_ground: input_state =
+pub static mut input_state_ground: input_state =
     unsafe {
         input_state{name: b"ground\x00" as *const u8 as *const libc::c_char,
                     enter: Some(input_ground),
                     exit: None,
-                    transitions: input_state_ground_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_ground_table: [input_transition; 10] =
+pub static mut input_state_ground_table: [input_transition; 10] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -1771,15 +1758,15 @@ unsafe extern "C" fn input_c0_dispatch(mut ictx: *mut input_ctx)
     (*ictx).last = 1i32.wrapping_neg();
     return 0i32;
 }
-static mut input_state_esc_enter: input_state =
+pub static mut input_state_esc_enter: input_state =
     unsafe {
         input_state{name:
                         b"esc_enter\x00" as *const u8 as *const libc::c_char,
                     enter: Some(input_clear),
                     exit: None,
-                    transitions: input_state_esc_enter_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_esc_enter_table: [input_transition; 23] =
+pub static mut input_state_esc_enter_table: [input_transition; 23] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -2067,16 +2054,16 @@ static mut input_esc_table: [input_table_entry; 15] =
                                b"\x00" as *const u8 as *const libc::c_char,
                            type_0: INPUT_ESC_RIS as libc::c_int,}]
     };
-static mut input_state_rename_string: input_state =
+pub static mut input_state_rename_string: input_state =
     unsafe {
         input_state{name:
                         b"rename_string\x00" as *const u8 as
                             *const libc::c_char,
                     enter: Some(input_enter_rename),
                     exit: Some(input_exit_rename),
-                    transitions: input_state_rename_string_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_rename_string_table: [input_transition; 8] =
+pub static mut input_state_rename_string_table: [input_transition; 8] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -2192,15 +2179,15 @@ unsafe extern "C" fn input_clear(mut ictx: *mut input_ctx) -> () {
     (*ictx).input_len = 0i32 as size_t;
     (*ictx).flags &= !1i32;
 }
-static mut input_state_apc_string: input_state =
+pub static mut input_state_apc_string: input_state =
     unsafe {
         input_state{name:
                         b"apc_string\x00" as *const u8 as *const libc::c_char,
                     enter: Some(input_enter_apc),
                     exit: Some(input_exit_apc),
-                    transitions: input_state_apc_string_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_apc_string_table: [input_transition; 8] =
+pub static mut input_state_apc_string_table: [input_transition; 8] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -2262,15 +2249,15 @@ unsafe extern "C" fn input_enter_apc(mut ictx: *mut input_ctx) -> () {
     input_start_timer(ictx);
     (*ictx).last = 1i32.wrapping_neg();
 }
-static mut input_state_consume_st: input_state =
+pub static mut input_state_consume_st: input_state =
     unsafe {
         input_state{name:
                         b"consume_st\x00" as *const u8 as *const libc::c_char,
                     enter: Some(input_enter_rename),
                     exit: None,
-                    transitions: input_state_consume_st_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_consume_st_table: [input_transition; 8] =
+pub static mut input_state_consume_st_table: [input_transition; 8] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -2306,15 +2293,15 @@ static mut input_state_consume_st_table: [input_transition; 8] =
                           handler: None,
                           state: 0 as *const input_state,}]
     };
-static mut input_state_osc_string: input_state =
+pub static mut input_state_osc_string: input_state =
     unsafe {
         input_state{name:
                         b"osc_string\x00" as *const u8 as *const libc::c_char,
                     enter: Some(input_enter_osc),
                     exit: Some(input_exit_osc),
-                    transitions: input_state_osc_string_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_osc_string_table: [input_transition; 10] =
+pub static mut input_state_osc_string_table: [input_transition; 10] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -2599,15 +2586,15 @@ unsafe extern "C" fn input_enter_osc(mut ictx: *mut input_ctx) -> () {
     input_start_timer(ictx);
     (*ictx).last = 1i32.wrapping_neg();
 }
-static mut input_state_csi_enter: input_state =
+pub static mut input_state_csi_enter: input_state =
     unsafe {
         input_state{name:
                         b"csi_enter\x00" as *const u8 as *const libc::c_char,
                     enter: Some(input_clear),
                     exit: None,
-                    transitions: input_state_csi_enter_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_csi_enter_table: [input_transition; 14] =
+pub static mut input_state_csi_enter_table: [input_transition; 14] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -6517,16 +6504,16 @@ unsafe extern "C" fn input_split(mut ictx: *mut input_ctx) -> libc::c_int {
         return 0i32
     };
 }
-static mut input_state_csi_parameter: input_state =
+pub static mut input_state_csi_parameter: input_state =
     unsafe {
         input_state{name:
                         b"csi_parameter\x00" as *const u8 as
                             *const libc::c_char,
                     enter: None,
                     exit: None,
-                    transitions: input_state_csi_parameter_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_csi_parameter_table: [input_transition; 14] =
+pub static mut input_state_csi_parameter_table: [input_transition; 14] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -6589,15 +6576,15 @@ static mut input_state_csi_parameter_table: [input_transition; 14] =
                           handler: None,
                           state: 0 as *const input_state,}]
     };
-static mut input_state_csi_ignore: input_state =
+pub static mut input_state_csi_ignore: input_state =
     unsafe {
         input_state{name:
                         b"csi_ignore\x00" as *const u8 as *const libc::c_char,
                     enter: None,
                     exit: None,
-                    transitions: input_state_csi_ignore_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_csi_ignore_table: [input_transition; 10] =
+pub static mut input_state_csi_ignore_table: [input_transition; 10] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -6655,16 +6642,16 @@ unsafe extern "C" fn input_parameter(mut ictx: *mut input_ctx)
     }
     return 0i32;
 }
-static mut input_state_csi_intermediate: input_state =
+pub static mut input_state_csi_intermediate: input_state =
     unsafe {
         input_state{name:
                         b"csi_intermediate\x00" as *const u8 as
                             *const libc::c_char,
                     enter: None,
                     exit: None,
-                    transitions: input_state_csi_intermediate_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_csi_intermediate_table: [input_transition; 11] =
+pub static mut input_state_csi_intermediate_table: [input_transition; 11] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -6727,15 +6714,15 @@ unsafe extern "C" fn input_intermediate(mut ictx: *mut input_ctx)
     }
     return 0i32;
 }
-static mut input_state_dcs_enter: input_state =
+pub static mut input_state_dcs_enter: input_state =
     unsafe {
         input_state{name:
                         b"dcs_enter\x00" as *const u8 as *const libc::c_char,
                     enter: Some(input_enter_dcs),
                     exit: None,
-                    transitions: input_state_dcs_enter_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_dcs_enter_table: [input_transition; 14] =
+pub static mut input_state_dcs_enter_table: [input_transition; 14] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -6806,16 +6793,16 @@ static mut input_state_dcs_enter_table: [input_transition; 14] =
                           handler: None,
                           state: 0 as *const input_state,}]
     };
-static mut input_state_dcs_handler: input_state =
+pub static mut input_state_dcs_handler: input_state =
     unsafe {
         input_state{name:
                         b"dcs_handler\x00" as *const u8 as
                             *const libc::c_char,
                     enter: None,
                     exit: None,
-                    transitions: input_state_dcs_handler_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_dcs_handler_table: [input_transition; 4] =
+pub static mut input_state_dcs_handler_table: [input_transition; 4] =
     unsafe {
         [input_transition{first: 0i32,
                           last: 26i32,
@@ -6835,15 +6822,15 @@ static mut input_state_dcs_handler_table: [input_transition; 4] =
                           handler: None,
                           state: 0 as *const input_state,}]
     };
-static mut input_state_dcs_escape: input_state =
+pub static mut input_state_dcs_escape: input_state =
     unsafe {
         input_state{name:
                         b"dcs_escape\x00" as *const u8 as *const libc::c_char,
                     enter: None,
                     exit: None,
-                    transitions: input_state_dcs_escape_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_dcs_escape_table: [input_transition; 4] =
+pub static mut input_state_dcs_escape_table: [input_transition; 4] =
     unsafe {
         [input_transition{first: 0i32,
                           last: 91i32,
@@ -6894,16 +6881,16 @@ unsafe extern "C" fn input_dcs_dispatch(mut ictx: *mut input_ctx)
         return 0i32
     };
 }
-static mut input_state_dcs_parameter: input_state =
+pub static mut input_state_dcs_parameter: input_state =
     unsafe {
         input_state{name:
                         b"dcs_parameter\x00" as *const u8 as
                             *const libc::c_char,
                     enter: None,
                     exit: None,
-                    transitions: input_state_dcs_parameter_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_dcs_parameter_table: [input_transition; 14] =
+pub static mut input_state_dcs_parameter_table: [input_transition; 14] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -6969,15 +6956,15 @@ static mut input_state_dcs_parameter_table: [input_transition; 14] =
                           handler: None,
                           state: 0 as *const input_state,}]
     };
-static mut input_state_dcs_ignore: input_state =
+pub static mut input_state_dcs_ignore: input_state =
     unsafe {
         input_state{name:
                         b"dcs_ignore\x00" as *const u8 as *const libc::c_char,
                     enter: None,
                     exit: None,
-                    transitions: input_state_dcs_ignore_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_dcs_ignore_table: [input_transition; 8] =
+pub static mut input_state_dcs_ignore_table: [input_transition; 8] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -7013,16 +7000,16 @@ static mut input_state_dcs_ignore_table: [input_transition; 8] =
                           handler: None,
                           state: 0 as *const input_state,}]
     };
-static mut input_state_dcs_intermediate: input_state =
+pub static mut input_state_dcs_intermediate: input_state =
     unsafe {
         input_state{name:
                         b"dcs_intermediate\x00" as *const u8 as
                             *const libc::c_char,
                     enter: None,
                     exit: None,
-                    transitions: input_state_dcs_intermediate_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_dcs_intermediate_table: [input_transition; 11] =
+pub static mut input_state_dcs_intermediate_table: [input_transition; 11] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,
@@ -7081,16 +7068,16 @@ unsafe extern "C" fn input_enter_dcs(mut ictx: *mut input_ctx) -> () {
     input_start_timer(ictx);
     (*ictx).last = 1i32.wrapping_neg();
 }
-static mut input_state_esc_intermediate: input_state =
+pub static mut input_state_esc_intermediate: input_state =
     unsafe {
         input_state{name:
                         b"esc_intermediate\x00" as *const u8 as
                             *const libc::c_char,
                     enter: None,
                     exit: None,
-                    transitions: input_state_esc_intermediate_table.as_ptr(),}
+                    transitions: 0 as *const _,}
     };
-static mut input_state_esc_intermediate_table: [input_transition; 10] =
+pub static mut input_state_esc_intermediate_table: [input_transition; 10] =
     unsafe {
         [input_transition{first: 24i32,
                           last: 24i32,

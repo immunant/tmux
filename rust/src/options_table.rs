@@ -1281,8 +1281,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_SERVER,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_set_clipboard_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 1i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -1327,8 +1326,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_SESSION,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_bell_action_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 3i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -1368,8 +1366,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_SESSION,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_bell_action_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 1i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -1785,8 +1782,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_SESSION,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_bell_action_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 3i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -1874,8 +1870,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_SESSION,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_status_justify_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 0i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -1887,8 +1882,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_SESSION,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_status_keys_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 0i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -1994,8 +1988,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_SESSION,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_status_position_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 1i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -2133,8 +2126,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_SESSION,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_visual_bell_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 0i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -2146,8 +2138,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_SESSION,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_visual_bell_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 0i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -2159,8 +2150,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_SESSION,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_visual_bell_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 0i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -2274,8 +2264,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_WINDOW,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_clock_mode_style_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 1i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -2391,8 +2380,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_WINDOW,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_mode_keys_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 0i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -2600,8 +2588,7 @@ pub static mut options_table: [options_table_entry; 130] =
                              scope: OPTIONS_TABLE_WINDOW,
                              minimum: 0,
                              maximum: 0,
-                             choices:
-                                 options_table_pane_status_list.as_mut_ptr(),
+                             choices: 0 as *mut *const _, // Initialized in main
                              default_str: 0 as *const libc::c_char,
                              default_num: 0i32 as libc::c_longlong,
                              separator: 0 as *const libc::c_char,
@@ -3090,52 +3077,52 @@ pub static mut options_table: [options_table_entry; 130] =
                              separator: 0 as *const libc::c_char,
                              style: 0 as *const libc::c_char,}]
     };
-static mut options_table_pane_status_list: [*const libc::c_char; 4] =
+pub static mut options_table_pane_status_list: [*const libc::c_char; 4] =
     unsafe {
         [b"off\x00" as *const u8 as *const libc::c_char,
          b"top\x00" as *const u8 as *const libc::c_char,
          b"bottom\x00" as *const u8 as *const libc::c_char,
          0 as *const libc::c_char]
     };
-static mut options_table_mode_keys_list: [*const libc::c_char; 3] =
+pub static mut options_table_mode_keys_list: [*const libc::c_char; 3] =
     unsafe {
         [b"emacs\x00" as *const u8 as *const libc::c_char,
          b"vi\x00" as *const u8 as *const libc::c_char,
          0 as *const libc::c_char]
     };
-static mut options_table_clock_mode_style_list: [*const libc::c_char; 3] =
+pub static mut options_table_clock_mode_style_list: [*const libc::c_char; 3] =
     unsafe {
         [b"12\x00" as *const u8 as *const libc::c_char,
          b"24\x00" as *const u8 as *const libc::c_char,
          0 as *const libc::c_char]
     };
-static mut options_table_visual_bell_list: [*const libc::c_char; 4] =
+pub static mut options_table_visual_bell_list: [*const libc::c_char; 4] =
     unsafe {
         [b"off\x00" as *const u8 as *const libc::c_char,
          b"on\x00" as *const u8 as *const libc::c_char,
          b"both\x00" as *const u8 as *const libc::c_char,
          0 as *const libc::c_char]
     };
-static mut options_table_status_position_list: [*const libc::c_char; 3] =
+pub static mut options_table_status_position_list: [*const libc::c_char; 3] =
     unsafe {
         [b"top\x00" as *const u8 as *const libc::c_char,
          b"bottom\x00" as *const u8 as *const libc::c_char,
          0 as *const libc::c_char]
     };
-static mut options_table_status_keys_list: [*const libc::c_char; 3] =
+pub static mut options_table_status_keys_list: [*const libc::c_char; 3] =
     unsafe {
         [b"emacs\x00" as *const u8 as *const libc::c_char,
          b"vi\x00" as *const u8 as *const libc::c_char,
          0 as *const libc::c_char]
     };
-static mut options_table_status_justify_list: [*const libc::c_char; 4] =
+pub static mut options_table_status_justify_list: [*const libc::c_char; 4] =
     unsafe {
         [b"left\x00" as *const u8 as *const libc::c_char,
          b"centre\x00" as *const u8 as *const libc::c_char,
          b"right\x00" as *const u8 as *const libc::c_char,
          0 as *const libc::c_char]
     };
-static mut options_table_bell_action_list: [*const libc::c_char; 5] =
+pub static mut options_table_bell_action_list: [*const libc::c_char; 5] =
     unsafe {
         [b"none\x00" as *const u8 as *const libc::c_char,
          b"any\x00" as *const u8 as *const libc::c_char,
@@ -3143,7 +3130,7 @@ static mut options_table_bell_action_list: [*const libc::c_char; 5] =
          b"other\x00" as *const u8 as *const libc::c_char,
          0 as *const libc::c_char]
     };
-static mut options_table_set_clipboard_list: [*const libc::c_char; 4] =
+pub static mut options_table_set_clipboard_list: [*const libc::c_char; 4] =
     unsafe {
         [b"off\x00" as *const u8 as *const libc::c_char,
          b"external\x00" as *const u8 as *const libc::c_char,

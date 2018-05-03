@@ -25,5 +25,5 @@ fn main() {
     println!("cargo:rustc-link-lib=dylib=resolv");
     println!("cargo:rustc-link-lib=ncursesw");
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
-    println!("cargo:rustc-link-lib=static=event");
+    println!("cargo:rustc-link-lib=event");
 }

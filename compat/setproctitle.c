@@ -21,6 +21,7 @@
 
 #include "compat.h"
 
+#if 0
 #if defined(HAVE_PRCTL) && defined(HAVE_PR_SET_NAME)
 
 #include <sys/prctl.h>
@@ -49,4 +50,5 @@ void
 setproctitle(__unused const char *fmt, ...)
 {
 }
+#endif
 #endif

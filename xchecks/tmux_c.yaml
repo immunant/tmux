@@ -1,0 +1,25 @@
+---
+# Contains `struct HEADER` which has bitfields
+/usr/include/arpa/nameser_compat.h:
+    - name: HEADER
+      item: struct
+      disable_xchecks: true
+
+# Contains `struct __res_state` which has bitfields
+/usr/include/bits/types/res_state.h:
+    - name: __res_state
+      item: struct
+      disable_xchecks: true
+
+osdep-linux.c:
+    # Returns opaque structure `struct event_base` which we can't cross-check
+    - name: osdep_event_init
+      item: function
+      return: disabled
+
+# We really can't cross-check any variadic functions (for now)
+variadic.c:
+    - item: defaults
+      disable_xchecks: true
+
+...

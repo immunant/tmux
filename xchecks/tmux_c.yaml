@@ -17,9 +17,4 @@ osdep-linux.c:
       item: function
       return: disabled
 
-# We really can't cross-check any variadic functions (for now)
-variadic.c:
-    - item: defaults
-      disable_xchecks: true
-
 ...

@@ -2339,3 +2339,14 @@ bad:
 	log_debug("bad OSC 104: %s", p);
 	free(copy);
 }
+
+#ifdef C2RUST_XCHECKS
+/// C2Rust
+uint64_t __c2rust_hash_dst_key_struct(void *l, size_t depth) {
+    return 0xABCD0002;
+}
+
+uint64_t __c2rust_hash_evbuffer_struct(void *l, size_t depth) {
+    return 0xABCD0003;
+}
+#endif // C2RUST_XCHECKS

@@ -9,6 +9,7 @@ fn main() {
     let cargo_dir =  Path::new(manifest_dir.as_str());
     let lib_dir = cargo_dir.join("lib");
     let variadic_c = cargo_dir.join("../variadic.c");
+    let xchecks_c = cargo_dir.join("../xchecks/xchecks.c");
 
     if !lib_dir.is_dir() {
         create_dir(&lib_dir).unwrap();
@@ -17,6 +18,7 @@ fn main() {
     cc::Build::new()
         .flag("-c")
         .file(variadic_c)
+        .file(xchecks_c)
         .flag("-fPIC")
         .flag("-w") // Hide warnings; cc will pass them to cargo annoyingly
         .out_dir(&lib_dir)

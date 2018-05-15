@@ -18,6 +18,15 @@
 #![allow(unused_parens)]
 #![allow(unused_assignments)]
 #![allow(unused_variables)]
+
+#![feature(plugin, custom_attribute)]
+#![plugin(cross_check_plugin(config_file="../xchecks/tmux_rust.yaml"))]
+#![cross_check(yes)]
+
+#[macro_use] extern crate cross_check_derive;
+#[macro_use] extern crate cross_check_runtime;
+extern crate libfakechecks_sys;
+
 extern crate libc;
 
 pub mod alerts;
@@ -2267,4 +2276,3 @@ fn main() -> () {
                                         *mut *mut libc::c_char) as i32)
     }
 }
-

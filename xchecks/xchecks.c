@@ -31,8 +31,10 @@ uint64_t __c2rust_hash_event_base_struct(void *l, size_t depth) {
     return 0xABCD0005;
 }
 
+#if 0 // We have this one in the Rust code
 uint64_t __c2rust_hash___mbstate_t(void *l, size_t depth)
     __attribute__ ((alias("__c2rust_hash___mbstate_t_struct")));
+#endif
 uint64_t __c2rust_hash___mbstate_t_struct(void *l, size_t depth) {
     return 0xABCD0006;
 }

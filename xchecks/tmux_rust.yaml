@@ -1,0 +1,75 @@
+---
+src/compat/imsg.rs:
+    - item: struct
+      name: ibuf_read
+      fields:
+          buf: disabled
+
+src/client_.rs:
+    - item: struct
+      name: sockaddr_un
+      fields:
+          sun_path: disabled
+
+    - item: struct
+      name: msg_stdout_data
+      fields:
+          data: disabled
+
+    - item: struct
+      name: msg_stderr_data
+      fields:
+          data: disabled
+
+    - item: struct
+      name: msg_stdin_data
+      fields:
+          data: disabled
+
+src/proc_.rs:
+    - item: struct
+      name: ibuf_read
+      fields:
+          buf: disabled
+
+src/server.rs:
+    - item: struct
+      name: sockaddr_storage
+      fields:
+          __ss_padding: disabled
+
+    - item: struct
+      name: sockaddr_un
+      fields:
+          sun_path: disabled
+
+src/server_client.rs:
+    - item: struct
+      name: msg_stdout_data
+      fields:
+          data: disabled
+
+    - item: struct
+      name: msg_stderr_data
+      fields:
+          data: disabled
+
+    - item: struct
+      name: msg_stdin_data
+      fields:
+          data: disabled
+
+src/main.rs:
+    # Rust's version of `main`, ignore it
+    - item: function
+      name: main
+      disable_xchecks: true
+
+    # `main` transpiled from C
+    - item: function
+      name: main_0
+      entry: { djb2: "main" }
+      exit: { djb2: "main" }
+
+
+...

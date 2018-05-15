@@ -4,3 +4,17 @@ version = "0.1.0"
 
 [build-dependencies]
 cc = "1.0"
+
+[dependencies.cross-check-plugin]
+path = "/mnt/ssd1/ahomescu/development/c2rust/galois/C2Rust/cross-checks/rust-checks/rustc-plugin"
+features = ["c-hash-functions"]
+
+[dependencies.cross-check-derive]
+path = "/mnt/ssd1/ahomescu/development/c2rust/galois/C2Rust/cross-checks/rust-checks/derive-macros"
+
+[dependencies.cross-check-runtime]
+path = "/mnt/ssd1/ahomescu/development/c2rust/galois/C2Rust/cross-checks/rust-checks/runtime"
+features = ["libc-hash", "fixed-length-array-hash"]
+
+[dependencies.libfakechecks-sys]
+path = "/mnt/ssd1/ahomescu/development/c2rust/galois/C2Rust/cross-checks/rust-checks/backends/libfakechecks-sys"

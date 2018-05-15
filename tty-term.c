@@ -676,10 +676,3 @@ tty_term_describe(struct tty_term *term, enum tty_code_code code)
 	}
 	return (s);
 }
-
-#ifdef C2RUST_XCHECKS
-/// C2Rust
-uint64_t __c2rust_hash_ldat_struct(void *l, size_t depth) {
-    return 0xABCD0001;
-}
-#endif // C2RUST_XCHECKS

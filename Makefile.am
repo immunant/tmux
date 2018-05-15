@@ -176,6 +176,7 @@ dist_tmux_SOURCES = \
 	xmalloc.c \
 	xmalloc.h \
 	xterm-keys.c \
+	xchecks/xchecks.c \
 	variadic.c
 nodist_tmux_SOURCES = osdep-@PLATFORM@.c
 

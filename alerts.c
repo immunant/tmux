@@ -321,22 +321,3 @@ alerts_set_message(struct winlink *wl, const char *type, const char *option)
 			status_message_set(c, "%s in window %d", type, wl->idx);
 	}
 }
-
-#ifdef C2RUST_XCHECKS
-/// C2Rust
-uint64_t __c2rust_hash___locale_data_struct(void *l, size_t depth) {
-    return 0xABCD0004;
-}
-
-uint64_t __c2rust_hash_event_base_struct(void *l, size_t depth) {
-    return 0xABCD0005;
-}
-
-uint64_t __c2rust_hash___mbstate_t_struct(void *l, size_t depth) {
-    return 0xABCD0006;
-}
-
-uint64_t __c2rust_hash_bufferevent_ops_struct(void *l, size_t depth) {
-    return 0xABCD0007;
-}
-#endif // C2RUST_XCHECKS

@@ -17,4 +17,41 @@ osdep-linux.c:
       item: function
       return: disabled
 
+# Stuff that's disabled in the Rust version
+# For now, all of these are fixed-sized arrays that are too large
+# for our default CrossCheckHash array size list
+tmux.h:
+    - item: struct
+      name: msg_stdin_data
+      fields:
+          data: disabled
+
+    - item: struct
+      name: msg_stdout_data
+      fields:
+          data: disabled
+
+    - item: struct
+      name: msg_stderr_data
+      fields:
+          data: disabled
+
+compat/imsg.h:
+    - item: struct
+      name: ibuf_read
+      fields:
+          buf: disabled
+
+/usr/include/linux/un.h:
+    - item: struct
+      name: sockaddr_un
+      fields:
+          sun_path: disabled
+
+/usr/include/bits/socket.h:
+    - item: struct
+      name: sockaddr_storage
+      fields:
+          __ss_padding: disabled
+
 ...

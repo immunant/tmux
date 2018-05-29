@@ -223,14 +223,22 @@ pub struct event_callback {
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct event {
-    pub ev_evcallback: event_callback,
+    pub ev_active_next: unnamed_25,
+    pub ev_next: unnamed_25,
     pub ev_timeout_pos: unnamed_23,
     pub ev_fd: libc::c_int,
     pub ev_base: *mut event_base,
-    pub ev_: unnamed_18,
+    pub _ev: unnamed_18,
     pub ev_events: libc::c_short,
     pub ev_res: libc::c_short,
+    pub ev_flags: libc::c_short,
+    pub ev_pri: uint8_t,
+    pub ev_closure: uint8_t,
     pub ev_timeout: timeval,
+    pub ev_callback: Option<unsafe extern "C" fn(_: libc::c_int,
+                                                 _: libc::c_short,
+                                                 _: *mut libc::c_void) -> ()>,
+    pub ev_arg: *mut libc::c_void,
 }
 #[derive ( Copy , Clone )]
 #[repr ( C )]

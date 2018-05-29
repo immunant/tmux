@@ -817,14 +817,22 @@ pub const CMD_FIND_SESSION: cmd_find_type = 2;
 #[derive ( Copy , Clone )]
 #[repr ( C )]
 pub struct event {
-    pub ev_evcallback: event_callback,
+    pub ev_active_next: unnamed_23,
+    pub ev_next: unnamed_23,
     pub ev_timeout_pos: unnamed_38,
     pub ev_fd: libc::c_int,
     pub ev_base: *mut event_base,
-    pub ev_: unnamed_26,
+    pub _ev: unnamed_26,
     pub ev_events: libc::c_short,
     pub ev_res: libc::c_short,
+    pub ev_flags: libc::c_short,
+    pub ev_pri: uint8_t,
+    pub ev_closure: uint8_t,
     pub ev_timeout: timeval,
+    pub ev_callback: Option<unsafe extern "C" fn(_: libc::c_int,
+                                                 _: libc::c_short,
+                                                 _: *mut libc::c_void) -> ()>,
+    pub ev_arg: *mut libc::c_void,
 }
 pub type uint16_t = __uint16_t;
 #[derive ( Copy , Clone )]

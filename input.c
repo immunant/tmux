@@ -26,6 +26,7 @@
 #include <time.h>
 
 #include "tmux.h"
+#include "variadic.h"
 
 /*
  * Based on the description by Paul Williams at:

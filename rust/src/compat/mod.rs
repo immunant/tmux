@@ -1,4 +1,4 @@
-pub mod base64;
+// pub mod base64;
 pub mod closefrom;
 pub mod explicit_bzero;
 pub mod fdforkpty;

@@ -1,6 +1,5 @@
 // pub mod base64;
 pub mod closefrom;
-pub mod explicit_bzero;
 pub mod fdforkpty;
 pub mod fgetln;
 pub mod fparseln;
@@ -10,7 +9,6 @@ pub mod getopt;
 pub mod getprogname;
 pub mod imsg_buffer;
 pub mod imsg;
-pub mod reallocarray;
 pub mod recallocarray;
 pub mod strlcat;
 pub mod strlcpy;

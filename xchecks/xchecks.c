@@ -1,6 +1,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __linux__
+// Cross-checks are only supported on Linux,
+// and this doesn't compile on Mac OS anyway
+
 uint64_t __c2rust_hash_ldat(void *l, size_t depth)
     __attribute__ ((alias("__c2rust_hash_ldat_struct")));
 uint64_t __c2rust_hash_ldat_struct(void *l, size_t depth) {
@@ -42,3 +46,5 @@ uint64_t __c2rust_hash_bufferevent_ops(void *l, size_t depth)
 uint64_t __c2rust_hash_bufferevent_ops_struct(void *l, size_t depth) {
     return 0xABCD0007;
 }
+
+#endif // __linux__
